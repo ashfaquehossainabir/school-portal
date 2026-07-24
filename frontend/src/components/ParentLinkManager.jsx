@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
+import UserSearchSelect from './UserSearchSelect';
 
 export default function ParentLinkManager() {
   const [parents, setParents] = useState([]);
   const [students, setStudents] = useState([]);
-  const [linkParent, setLinkParent] = useState('');
-  const [linkStudent, setLinkStudent] = useState('');
+  const [linkParent, setLinkParent] = useState(null);
+  const [linkStudent, setLinkStudent] = useState(null);
   const [msg, setMsg] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [resetSignal, setResetSignal] = useState(0);
 
   const load = () => {
     api.get('/users', { params: { role: 'parent' } }).then((res) => setParents(res.data));
@@ -16,14 +19,23 @@ export default function ParentLinkManager() {
   useEffect(load, []);
 
   const handleLink = async () => {
-    if (!linkParent || !linkStudent) return;
+    if (!linkParent || !linkStudent) {
+      setMsg('Search and select both a parent and a student first.');
+      return;
+    }
+    setSaving(true);
     setMsg('');
     try {
-      await api.post('/users/link-child', { parentId: linkParent, studentId: linkStudent });
-      setMsg('Parent linked to student.');
+      await api.post('/users/link-child', { parentId: linkParent._id, studentId: linkStudent._id });
+      setMsg(`Linked ${linkParent.name} to ${linkStudent.name}.`);
+      setLinkParent(null);
+      setLinkStudent(null);
+      setResetSignal((n) => n + 1);
       load();
     } catch (err) {
       setMsg(err.response?.data?.message || 'Failed to link');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -37,18 +49,27 @@ export default function ParentLinkManager() {
   return (
     <div className="card" style={{ marginBottom: 20 }}>
       <h3 style={{ marginTop: 0 }}>Connect Parents with Students</h3>
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 14 }}>
-        <select value={linkParent} onChange={(e) => setLinkParent(e.target.value)} style={{ width: 220 }}>
-          <option value="">Select parent</option>
-          {parents.map((p) => <option key={p._id} value={p._id}>{p.name} ({p.email})</option>)}
-        </select>
-        <select value={linkStudent} onChange={(e) => setLinkStudent(e.target.value)} style={{ width: 220 }}>
-          <option value="">Select student</option>
-          {students.map((s) => <option key={s._id} value={s._id}>{s.name} — {s.className} {s.section}</option>)}
-        </select>
-        <button className="btn btn-primary" onClick={handleLink}>Link</button>
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
+        <UserSearchSelect
+          role="parent"
+          placeholder="Search parent by name or email"
+          onSelect={setLinkParent}
+          resetSignal={resetSignal}
+        />
+        <UserSearchSelect
+          role="student"
+          placeholder="Search student by name or ID"
+          onSelect={setLinkStudent}
+          resetSignal={resetSignal}
+        />
+        <button className="btn btn-primary" onClick={handleLink} disabled={saving}>
+          {saving ? 'Linking...' : 'Link'}
+        </button>
       </div>
-      {msg && <p style={{ fontSize: 13, color: 'var(--success)', marginBottom: 10 }}>{msg}</p>}
+      <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 0, marginBottom: 10 }}>
+        Type a few letters of the parent's or student's name (or the Student ID) and click a suggestion to select them.
+      </p>
+      {msg && <p style={{ fontSize: 13, color: msg.startsWith('Linked') ? 'var(--success)' : 'var(--danger)', marginBottom: 10 }}>{msg}</p>}
 
       <h4 style={{ margin: '10px 0 8px' }}>Existing Links</h4>
       {parents.filter((p) => p.children?.length > 0).length === 0 && (

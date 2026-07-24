@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/axios';
+import UserSearchSelect from '../../components/UserSearchSelect';
 
 export default function AdminClasses() {
   const [classes, setClasses] = useState([]);
-  const [teachers, setTeachers] = useState([]);
-  const [form, setForm] = useState({ className: '', section: '', subjects: '', classTeacher: '' });
+  const [form, setForm] = useState({ className: '', section: '', subjects: '' });
+  const [formTeacher, setFormTeacher] = useState(null);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+  const [resetSignal, setResetSignal] = useState(0);
+
   const [editingId, setEditingId] = useState(null);
-  const [editTeacher, setEditTeacher] = useState('');
+  const [editTeacher, setEditTeacher] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
 
   const loadClasses = () => {
@@ -16,9 +19,6 @@ export default function AdminClasses() {
   };
 
   useEffect(loadClasses, []);
-  useEffect(() => {
-    api.get('/users', { params: { role: 'teacher' } }).then((res) => setTeachers(res.data));
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,9 +29,11 @@ export default function AdminClasses() {
         className: form.className,
         section: form.section,
         subjects: form.subjects.split(',').map((s) => s.trim()).filter(Boolean),
-        classTeacher: form.classTeacher || undefined,
+        classTeacher: formTeacher?._id || undefined,
       });
-      setForm({ className: '', section: '', subjects: '', classTeacher: '' });
+      setForm({ className: '', section: '', subjects: '' });
+      setFormTeacher(null);
+      setResetSignal((n) => n + 1);
       setMsg('Class created.');
       loadClasses();
     } catch (err) {
@@ -48,13 +50,13 @@ export default function AdminClasses() {
 
   const startEditTeacher = (c) => {
     setEditingId(c._id);
-    setEditTeacher(c.classTeacher?._id || '');
+    setEditTeacher(c.classTeacher || null);
   };
 
   const saveClassTeacher = async (id) => {
     setSavingEdit(true);
     try {
-      await api.put(`/classes/${id}`, { classTeacher: editTeacher || null });
+      await api.put(`/classes/${id}`, { classTeacher: editTeacher?._id || null });
       setEditingId(null);
       loadClasses();
     } finally {
@@ -75,12 +77,13 @@ export default function AdminClasses() {
             <input placeholder="Subjects (comma separated)" value={form.subjects} onChange={(e) => setForm({ ...form, subjects: e.target.value })} />
           </div>
           <div style={{ marginBottom: 12 }}>
-            <select value={form.classTeacher} onChange={(e) => setForm({ ...form, classTeacher: e.target.value })} style={{ width: 260 }}>
-              <option value="">Assign class teacher (optional)</option>
-              {teachers.map((t) => (
-                <option key={t._id} value={t._id}>{t.name} {t.subject ? `— ${t.subject}` : ''}</option>
-              ))}
-            </select>
+            <UserSearchSelect
+              role="teacher"
+              placeholder="Search & assign class teacher (optional)"
+              onSelect={setFormTeacher}
+              resetSignal={resetSignal}
+              width={300}
+            />
           </div>
           <button className="btn btn-primary" type="submit" disabled={saving}>
             {saving ? 'Creating...' : 'Create Class'}
@@ -102,12 +105,13 @@ export default function AdminClasses() {
 
             {editingId === c._id ? (
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8, flexWrap: 'wrap' }}>
-                <select value={editTeacher} onChange={(e) => setEditTeacher(e.target.value)} style={{ flex: 1, minWidth: 140 }}>
-                  <option value="">Not assigned</option>
-                  {teachers.map((t) => (
-                    <option key={t._id} value={t._id}>{t.name}</option>
-                  ))}
-                </select>
+                <UserSearchSelect
+                  role="teacher"
+                  placeholder="Search teacher..."
+                  onSelect={setEditTeacher}
+                  initialUser={c.classTeacher || null}
+                  width={180}
+                />
                 <button className="btn btn-primary" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => saveClassTeacher(c._id)} disabled={savingEdit}>
                   {savingEdit ? 'Saving...' : 'Save'}
                 </button>

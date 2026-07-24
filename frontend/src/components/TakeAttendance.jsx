@@ -9,6 +9,8 @@ export default function TakeAttendance() {
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [students, setStudents] = useState([]);
   const [statusMap, setStatusMap] = useState({});
+  const [remarksMap, setRemarksMap] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState('');
@@ -24,16 +26,21 @@ export default function TakeAttendance() {
     ])
       .then(([studentsRes, attendanceRes]) => {
         setStudents(studentsRes.data);
-        const existing = {};
+        const existingStatus = {};
+        const existingRemarks = {};
         attendanceRes.data.forEach((r) => {
-          existing[r.student._id] = r.status;
+          existingStatus[r.student._id] = r.status;
+          existingRemarks[r.student._id] = r.remarks || '';
         });
         // default anyone not yet marked to "present"
-        const map = {};
+        const statusInit = {};
+        const remarksInit = {};
         studentsRes.data.forEach((s) => {
-          map[s._id] = existing[s._id] || 'present';
+          statusInit[s._id] = existingStatus[s._id] || 'present';
+          remarksInit[s._id] = existingRemarks[s._id] || '';
         });
-        setStatusMap(map);
+        setStatusMap(statusInit);
+        setRemarksMap(remarksInit);
       })
       .finally(() => setLoading(false));
   }, [classSection, date]);
@@ -42,17 +49,37 @@ export default function TakeAttendance() {
     setStatusMap((prev) => ({ ...prev, [studentId]: status }));
   };
 
-  const markAll = (status) => {
-    const map = {};
-    students.forEach((s) => (map[s._id] = status));
-    setStatusMap(map);
+  const setRemarks = (studentId, remarks) => {
+    setRemarksMap((prev) => ({ ...prev, [studentId]: remarks }));
   };
+
+  const markAll = (status) => {
+    setStatusMap((prev) => {
+      const next = { ...prev };
+      filteredStudents.forEach((s) => (next[s._id] = status));
+      return next;
+    });
+  };
+
+  const filteredStudents = students.filter((s) => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      s.name?.toLowerCase().includes(q) ||
+      s.studentId?.toLowerCase().includes(q) ||
+      s.roll?.toLowerCase?.().includes(q)
+    );
+  });
 
   const handleSave = async () => {
     setSaving(true);
     setSavedMsg('');
     try {
-      const records = students.map((s) => ({ studentId: s._id, status: statusMap[s._id] }));
+      const records = students.map((s) => ({
+        studentId: s._id,
+        status: statusMap[s._id],
+        remarks: remarksMap[s._id] || '',
+      }));
       await api.post('/attendance/mark', { ...classSection, date, records });
       setSavedMsg('Attendance saved and synced to student dashboards.');
     } catch (err) {
@@ -67,6 +94,13 @@ export default function TakeAttendance() {
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 20, alignItems: 'center' }}>
         <ClassSectionSelect value={classSection} onChange={setClassSection} />
         <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ width: 170 }} />
+        <input
+          type="text"
+          placeholder="Search student by name or ID"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ width: 220 }}
+        />
         <button className="btn btn-outline" onClick={() => markAll('present')}>Mark all present</button>
         <button className="btn btn-outline" onClick={() => markAll('absent')}>Mark all absent</button>
       </div>
@@ -84,10 +118,14 @@ export default function TakeAttendance() {
                   <th>Student ID</th>
                   <th>Name</th>
                   <th>Status</th>
+                  <th>Remarks</th>
                 </tr>
               </thead>
               <tbody>
-                {students.map((s) => (
+                {filteredStudents.length === 0 && (
+                  <tr><td colSpan={4} style={{ color: 'var(--text-secondary)' }}>No students match your search.</td></tr>
+                )}
+                {filteredStudents.map((s) => (
                   <tr key={s._id}>
                     <td>{s.studentId || s.roll || '—'}</td>
                     <td>{s.name}</td>
@@ -108,6 +146,15 @@ export default function TakeAttendance() {
                           </button>
                         ))}
                       </div>
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        placeholder="Optional note..."
+                        value={remarksMap[s._id] || ''}
+                        onChange={(e) => setRemarks(s._id, e.target.value)}
+                        style={{ minWidth: 160 }}
+                      />
                     </td>
                   </tr>
                 ))}

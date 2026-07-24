@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
+import UserSearchSelect from './UserSearchSelect';
 
 export default function TeacherAssignments() {
   const [teachers, setTeachers] = useState([]);
@@ -9,6 +10,7 @@ export default function TeacherAssignments() {
   const [subject, setSubject] = useState('');
   const [msg, setMsg] = useState('');
   const [saving, setSaving] = useState(false);
+  const [resetSignal, setResetSignal] = useState(0);
 
   const load = () => {
     api.get('/users', { params: { role: 'teacher' } }).then((res) => setTeachers(res.data));
@@ -45,10 +47,12 @@ export default function TeacherAssignments() {
     <div className="card" style={{ marginBottom: 20 }}>
       <h3 style={{ marginTop: 0 }}>Assign Teacher to Subject</h3>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
-        <select value={teacherId} onChange={(e) => setTeacherId(e.target.value)} style={{ width: 200 }}>
-          <option value="">Select teacher</option>
-          {teachers.map((t) => <option key={t._id} value={t._id}>{t.name}</option>)}
-        </select>
+        <UserSearchSelect
+          role="teacher"
+          placeholder="Search teacher by name or email"
+          onSelect={(u) => setTeacherId(u?._id || '')}
+          resetSignal={resetSignal}
+        />
         <select value={classSection} onChange={(e) => setClassSection(e.target.value)} style={{ width: 200 }}>
           <option value="">Select class</option>
           {classes.map((c) => (
@@ -60,6 +64,7 @@ export default function TeacherAssignments() {
           {saving ? 'Assigning...' : 'Assign'}
         </button>
       </div>
+      {!teacherId && <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: -4, marginBottom: 10 }}>Search and click a teacher above to select them.</p>}
       {msg && <p style={{ fontSize: 13, color: 'var(--success)', marginBottom: 10 }}>{msg}</p>}
 
       {selectedTeacher && (

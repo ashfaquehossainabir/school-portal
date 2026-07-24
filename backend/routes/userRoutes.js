@@ -81,7 +81,8 @@ router.post('/link-child', protect, authorize('admin'), async (req, res) => {
     if (!parent || parent.role !== 'parent') return res.status(400).json({ message: 'Invalid parent' });
     if (!student || student.role !== 'student') return res.status(400).json({ message: 'Invalid student' });
 
-    if (!parent.children.includes(studentId)) {
+    const alreadyLinked = parent.children.some((c) => c.toString() === studentId);
+    if (!alreadyLinked) {
       parent.children.push(studentId);
       await parent.save();
     }

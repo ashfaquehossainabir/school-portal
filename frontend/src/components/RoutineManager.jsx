@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
 import ClassSectionSelect from './ClassSectionSelect';
+import UserSearchSelect from './UserSearchSelect';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const emptyPeriod = () => ({ subject: '', teacher: '', startTime: '', endTime: '', room: '' });
@@ -36,20 +37,22 @@ export default function RoutineManager() {
 
   const periods = days[selectedDay] || [];
 
-  // Teachers already assigned to this exact class/section/subject show up first,
-  // so the dropdown surfaces the right person before you scroll through everyone.
-  const teachersForSubject = (subject) => {
+  const teacherObjFor = (id) => teachers.find((t) => t._id === id) || null;
+
+  // Teachers already assigned to this exact class/section/subject float to the
+  // top of the search suggestions, so the right person is easy to find first.
+  const matchedTeacherIds = (subject) => {
     const norm = (s) => (s || '').trim().toLowerCase();
-    const matches = (t) =>
-      t.assignedClasses?.some(
-        (a) =>
-          norm(a.className) === norm(classSection.className) &&
-          norm(a.section) === norm(classSection.section) &&
-          norm(a.subject) === norm(subject)
-      );
-    const matched = teachers.filter(matches);
-    const rest = teachers.filter((t) => !matches(t));
-    return [...matched, ...rest];
+    return teachers
+      .filter((t) =>
+        t.assignedClasses?.some(
+          (a) =>
+            norm(a.className) === norm(classSection.className) &&
+            norm(a.section) === norm(classSection.section) &&
+            norm(a.subject) === norm(subject)
+        )
+      )
+      .map((t) => t._id);
   };
 
   const updatePeriod = (i, field, value) => {
@@ -104,12 +107,14 @@ export default function RoutineManager() {
         {periods.map((p, i) => (
           <div key={i} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8, alignItems: 'center' }}>
             <input placeholder="Subject" value={p.subject} onChange={(e) => updatePeriod(i, 'subject', e.target.value)} style={{ width: 140 }} />
-            <select value={p.teacher} onChange={(e) => updatePeriod(i, 'teacher', e.target.value)} style={{ width: 170 }}>
-              <option value="">Assign teacher</option>
-              {teachersForSubject(p.subject).map((t) => (
-                <option key={t._id} value={t._id}>{t.name}</option>
-              ))}
-            </select>
+            <UserSearchSelect
+              role="teacher"
+              placeholder="Search & assign teacher"
+              onSelect={(u) => updatePeriod(i, 'teacher', u?._id || '')}
+              initialUser={teacherObjFor(p.teacher)}
+              prioritizeIds={matchedTeacherIds(p.subject)}
+              width={200}
+            />
             <input placeholder="Start (9:00 AM)" value={p.startTime} onChange={(e) => updatePeriod(i, 'startTime', e.target.value)} style={{ width: 130 }} />
             <input placeholder="End (9:45 AM)" value={p.endTime} onChange={(e) => updatePeriod(i, 'endTime', e.target.value)} style={{ width: 130 }} />
             <input placeholder="Room" value={p.room} onChange={(e) => updatePeriod(i, 'room', e.target.value)} style={{ width: 90 }} />
@@ -125,7 +130,7 @@ export default function RoutineManager() {
         </div>
         {msg && <p style={{ fontSize: 13, color: 'var(--success)', marginTop: 8 }}>{msg}</p>}
         <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 6 }}>
-          Tip: assign teachers to a subject on the Users page first (Assign Teacher to Subject) — they'll appear at the top of the dropdown for that class/section/subject.
+          Tip: assign teachers to a subject on the Users page first (Assign Teacher to Subject) — they'll appear at the top of the search suggestions for that class/section/subject.
         </p>
       </div>
     </div>

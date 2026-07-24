@@ -45,11 +45,13 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const navigate = useNavigate();
 
   const items = NAV_ITEMS[user?.role] || [];
 
-  const handleLogout = () => {
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false);
     logout();
     navigate('/login');
   };
@@ -75,7 +77,7 @@ export default function Layout() {
           ))}
         </nav>
         <div className="sidebar-footer">
-          <button className="btn btn-outline" style={{ width: '100%' }} onClick={handleLogout}>
+          <button className="btn btn-outline" style={{ width: '100%' }} onClick={() => setShowLogoutConfirm(true)}>
             Log out
           </button>
         </div>
@@ -105,6 +107,25 @@ export default function Layout() {
           <Outlet />
         </main>
       </div>
+
+      {showLogoutConfirm && (
+        <div className="modal-backdrop" onClick={() => setShowLogoutConfirm(false)}>
+          <div className="modal-card card" style={{ maxWidth: 360 }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginTop: 0 }}>Log out?</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
+              You'll need to sign in again to access your dashboard.
+            </p>
+            <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+              <button className="btn btn-danger" onClick={confirmLogout} style={{ flex: 1 }}>
+                Log out
+              </button>
+              <button className="btn btn-outline" onClick={() => setShowLogoutConfirm(false)} style={{ flex: 1 }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

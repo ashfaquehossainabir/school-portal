@@ -12,16 +12,29 @@ const emptyForm = {
 export default function AdminUsers() {
   const [form, setForm] = useState(emptyForm);
   const [users, setUsers] = useState([]);
-  const [filterRole, setFilterRole] = useState('student');
+  const [filterRole, setFilterRole] = useState('');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
   const [editingUser, setEditingUser] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const loadUsers = () => {
-    api.get('/users', { params: { role: filterRole } }).then((res) => setUsers(res.data));
+    api.get('/users', { params: filterRole ? { role: filterRole } : {} }).then((res) => setUsers(res.data));
   };
 
   useEffect(loadUsers, [filterRole]);
+
+  const filteredUsers = users.filter((u) => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      u.name?.toLowerCase().includes(q) ||
+      u.email?.toLowerCase().includes(q) ||
+      u.studentId?.toLowerCase().includes(q) ||
+      u.className?.toLowerCase().includes(q) ||
+      u.subject?.toLowerCase().includes(q)
+    );
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,7 +44,7 @@ export default function AdminUsers() {
       await api.post('/auth/create-user', form);
       setMsg(`${form.role} account created.`);
       setForm(emptyForm);
-      if (filterRole === form.role) loadUsers();
+      if (!filterRole || filterRole === form.role) loadUsers();
     } catch (err) {
       setMsg(err.response?.data?.message || 'Failed to create user');
     } finally {
@@ -95,26 +108,40 @@ export default function AdminUsers() {
       <ParentLinkManager />
 
       <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
           <h3 style={{ margin: 0 }}>All Users</h3>
-          <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)} style={{ width: 160 }}>
-            <option value="student">Students</option>
-            <option value="teacher">Teachers</option>
-            <option value="parent">Parents</option>
-            <option value="admin">Admins</option>
-          </select>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <input
+              type="text"
+              placeholder="Search by name, email, or Student ID"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ width: 260 }}
+            />
+            <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)} style={{ width: 160 }}>
+              <option value="">All Roles</option>
+              <option value="student">Students</option>
+              <option value="teacher">Teachers</option>
+              <option value="parent">Parents</option>
+              <option value="admin">Admins</option>
+            </select>
+          </div>
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table>
             <thead>
               <tr>
-                <th>Name</th><th>Email</th><th>Details</th><th>Status</th><th></th>
+                <th>Name</th><th>Role</th><th>Email</th><th>Details</th><th>Status</th><th></th>
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => (
+              {filteredUsers.length === 0 && (
+                <tr><td colSpan={6} style={{ color: 'var(--text-secondary)' }}>No users match your search.</td></tr>
+              )}
+              {filteredUsers.map((u) => (
                 <tr key={u._id}>
                   <td>{u.name}</td>
+                  <td><span className="badge" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{u.role}</span></td>
                   <td>{u.email}</td>
                   <td>
                     {u.role === 'student' && `${u.studentId || '—'} · ${u.className || '—'} ${u.section || ''}`}

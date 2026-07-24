@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
 import ClassSectionSelect from './ClassSectionSelect';
+import UserSearchSelect from './UserSearchSelect';
 
 const emptyEntry = () => ({ subject: '', teacher: '', date: '', startTime: '', endTime: '', room: '' });
 
@@ -12,6 +13,7 @@ export default function ExamManager() {
   const [teachers, setTeachers] = useState([]);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+  const [entriesResetSignal, setEntriesResetSignal] = useState(0);
 
   const loadExams = () => {
     if (!classSection.className) return;
@@ -24,19 +26,19 @@ export default function ExamManager() {
     api.get('/users', { params: { role: 'teacher' } }).then((res) => setTeachers(res.data));
   }, []);
 
-  // Teachers already assigned to this class/section/subject surface first in the dropdown.
-  const teachersForSubject = (subject) => {
+  // Teachers already assigned to this class/section/subject surface first in the suggestions.
+  const priorityTeacherIds = (subject) => {
     const norm = (s) => (s || '').trim().toLowerCase();
-    const matches = (t) =>
-      t.assignedClasses?.some(
-        (a) =>
-          norm(a.className) === norm(classSection.className) &&
-          norm(a.section) === norm(classSection.section) &&
-          norm(a.subject) === norm(subject)
-      );
-    const matched = teachers.filter(matches);
-    const rest = teachers.filter((t) => !matches(t));
-    return [...matched, ...rest];
+    return teachers
+      .filter((t) =>
+        t.assignedClasses?.some(
+          (a) =>
+            norm(a.className) === norm(classSection.className) &&
+            norm(a.section) === norm(classSection.section) &&
+            norm(a.subject) === norm(subject)
+        )
+      )
+      .map((t) => t._id);
   };
 
   const updateEntry = (i, field, value) => {
@@ -60,6 +62,7 @@ export default function ExamManager() {
       setMsg('Exam schedule published and synced to student dashboards.');
       setTitle('');
       setEntries([emptyEntry()]);
+      setEntriesResetSignal((n) => n + 1);
       loadExams();
     } catch (err) {
       setMsg(err.response?.data?.message || 'Failed to save');
@@ -92,12 +95,14 @@ export default function ExamManager() {
           {entries.map((entry, i) => (
             <div key={i} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8, alignItems: 'center' }}>
               <input placeholder="Subject" value={entry.subject} onChange={(e) => updateEntry(i, 'subject', e.target.value)} required style={{ width: 140 }} />
-              <select value={entry.teacher} onChange={(e) => updateEntry(i, 'teacher', e.target.value)} style={{ width: 160 }}>
-                <option value="">Assign teacher</option>
-                {teachersForSubject(entry.subject).map((t) => (
-                  <option key={t._id} value={t._id}>{t.name}</option>
-                ))}
-              </select>
+              <UserSearchSelect
+                role="teacher"
+                placeholder="Search & assign teacher"
+                onSelect={(u) => updateEntry(i, 'teacher', u?._id || '')}
+                prioritizeIds={priorityTeacherIds(entry.subject)}
+                resetSignal={entriesResetSignal}
+                width={190}
+              />
               <input type="date" value={entry.date} onChange={(e) => updateEntry(i, 'date', e.target.value)} required style={{ width: 140 }} />
               <input placeholder="Start (10:00 AM)" value={entry.startTime} onChange={(e) => updateEntry(i, 'startTime', e.target.value)} required style={{ width: 130 }} />
               <input placeholder="End (12:00 PM)" value={entry.endTime} onChange={(e) => updateEntry(i, 'endTime', e.target.value)} required style={{ width: 130 }} />
