@@ -127,7 +127,7 @@ export default function AdminUsers() {
             </select>
           </div>
         </div>
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ overflowX: 'auto', maxHeight: '555px', overflow: 'auto', paddingRight: '8px' }}>
           <table>
             <thead>
               <tr>

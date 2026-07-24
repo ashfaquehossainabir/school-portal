@@ -75,7 +75,7 @@ export default function ParentLinkManager() {
       {parents.filter((p) => p.children?.length > 0).length === 0 && (
         <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>No parent-student links yet.</p>
       )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: '350px', overflow: 'auto', paddingRight: '6px' }}>
         {parents.map((p) =>
           (p.children || []).map((childId) => (
             <div
