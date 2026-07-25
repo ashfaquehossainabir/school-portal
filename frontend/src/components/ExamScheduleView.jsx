@@ -19,7 +19,7 @@ export default function ExamScheduleView({ className, section }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {exams.map((exam) => (
-        <div className="card" key={exam._id}>
+        <div className="modal-wrapper" key={exam._id}>
           <h3 style={{ marginTop: 0 }}>{exam.title}</h3>
           <div style={{ overflowX: 'auto' }}>
             <table>

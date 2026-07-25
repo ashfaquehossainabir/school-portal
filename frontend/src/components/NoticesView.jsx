@@ -21,7 +21,7 @@ export default function NoticesView() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {notices.map((n) => (
-        <div className="card" key={n._id} style={{ borderLeft: `4px solid ${PRIORITY_COLOR[n.priority]}` }}>
+        <div className="modal-wrapper notice-card" key={n._id} style={{ borderLeft: `4px solid ${PRIORITY_COLOR[n.priority]}` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
             <h4 style={{ margin: 0 }}>{n.title}</h4>
             <span className="badge" style={{ background: 'var(--bg-elevated)', color: PRIORITY_COLOR[n.priority] }}>

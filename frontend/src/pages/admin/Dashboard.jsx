@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import StatCard from '../../components/StatCard';
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const [counts, setCounts] = useState({ students: 0, teachers: 0, parents: 0, classes: 0 });
 
   useEffect(() => {
@@ -25,13 +27,13 @@ export default function AdminDashboard() {
     <div>
       <h2 style={{ marginTop: 0 }}>School Overview</h2>
       <div className="grid grid-cols-4">
-        <StatCard label="Students" value={counts.students} icon="🎓" />
-        <StatCard label="Teachers" value={counts.teachers} icon="🧑‍🏫" />
-        <StatCard label="Parents" value={counts.parents} icon="👪" />
-        <StatCard label="Classes" value={counts.classes} icon="🏫" />
+        <StatCard label="Students" value={counts.students} icon="🎓" onClick={() => navigate('/admin/directory')} />
+        <StatCard label="Teachers" value={counts.teachers} icon="🧑‍🏫" onClick={() => navigate('/admin/directory')} />
+        <StatCard label="Parents" value={counts.parents} icon="👪" onClick={() => navigate('/admin/directory')} />
+        <StatCard label="Classes" value={counts.classes} icon="🏫" onClick={() => navigate('/admin/classes')} />
       </div>
 
-      <div className="card" style={{ marginTop: 20 }}>
+      <div className="modal-wrapper" style={{ marginTop: 20 }}>
         <h3 style={{ marginTop: 0 }}>Getting Started</h3>
         <ol style={{ color: 'var(--text-secondary)', lineHeight: 1.9, paddingLeft: 20 }}>
           <li>Create classes under <strong>Classes</strong> (e.g. Class 8, Section A).</li>

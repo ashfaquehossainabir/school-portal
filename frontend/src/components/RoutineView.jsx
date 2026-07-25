@@ -25,7 +25,7 @@ export default function RoutineView({ className, section }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {sortedDays.map((d) => (
-        <div className="card" key={d.day}>
+        <div className="modal-wrapper" key={d.day}>
           <h3 style={{ marginTop: 0 }}>{d.day}</h3>
           <div style={{ overflowX: 'auto' }}>
             <table>

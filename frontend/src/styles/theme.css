@@ -89,19 +89,59 @@ textarea:focus {
   box-shadow: var(--shadow);
   border: 1px solid var(--border-color);
   padding: 20px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
-.stat-card {
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-  cursor: default;
-}
-.stat-card:hover {
-  transform: translateY(-3px);
+.card:hover {
   box-shadow: 0 8px 24px rgba(20, 22, 35, 0.12);
   border-color: var(--accent);
 }
+
+[data-theme='dark'] .card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.modal-wrapper {
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.stat-card {
+  cursor: default;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(20, 22, 35, 0.12);
+}
+
 [data-theme='dark'] .stat-card:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.notice-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  cursor: pointer;
+}
+
+.notice-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(20, 22, 35, 0.12);
+}
+
+[data-theme='dark'] .notice-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Cards that represent a clickable person/record in the directory get a
+   slightly stronger lift plus a pointer cursor to signal they're tappable. */
+.person-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
 }
 
 .btn {
@@ -155,6 +195,20 @@ textarea:focus {
   font-size: 12px;
   font-weight: 600;
 }
+/* Small icon-only buttons (e.g. the "✕" clear/remove/close buttons scattered
+   throughout the app) — give them a visible hover state too. */
+.icon-btn,
+button[style*="background: none"],
+button[style*='background:none'] {
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  border-radius: 6px;
+}
+.icon-btn:hover,
+button[style*="background: none"]:hover,
+button[style*='background:none']:hover {
+  background: var(--bg-hover) !important;
+}
+
 .badge-present { background: rgba(22,163,74,0.15); color: var(--success); }
 .badge-absent { background: rgba(220,38,38,0.15); color: var(--danger); }
 .badge-late { background: rgba(217,119,6,0.15); color: var(--warning); }

@@ -32,7 +32,7 @@ export default function Login() {
       <button className="theme-toggle login-theme-toggle" onClick={toggleTheme}>
         {theme === 'light' ? '🌙' : '☀️'}
       </button>
-      <form className="login-card card" onSubmit={handleSubmit}>
+      <form className="login-card" onSubmit={handleSubmit}>
         <div className="login-brand">
           <span className="brand-dot" style={{ background: 'var(--accent)' }} />
           EduPortal
@@ -46,7 +46,7 @@ export default function Login() {
           type="text"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@school.com or STU2026014"
+          placeholder="Enter your email or ID"
           required
         />
 
@@ -55,7 +55,7 @@ export default function Login() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
+          placeholder="Enter your password"
           required
         />
 

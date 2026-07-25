@@ -20,10 +20,14 @@ router.get('/', protect, authorize('admin', 'teacher'), async (req, res) => {
   }
 });
 
-// GET single user
+// GET single user - populates parent/children so detail views (e.g. the
+// admin directory modal) can show meaningful names instead of raw ObjectIds
 router.get('/:id', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-password');
+    const user = await User.findById(req.params.id)
+      .select('-password')
+      .populate('parent', 'name email phone')
+      .populate('children', 'name email studentId className section roll');
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.json(user);
   } catch (err) {

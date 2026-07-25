@@ -68,7 +68,7 @@ export default function AdminClasses() {
     <div>
       <h2 style={{ marginTop: 0 }}>Classes</h2>
 
-      <div className="card" style={{ marginBottom: 20 }}>
+      <div className="modal-wrapper" style={{ marginBottom: 20 }}>
         <h3 style={{ marginTop: 0 }}>Create Class</h3>
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-3" style={{ marginBottom: 12 }}>

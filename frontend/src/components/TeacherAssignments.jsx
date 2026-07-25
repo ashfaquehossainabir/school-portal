@@ -44,7 +44,7 @@ export default function TeacherAssignments() {
   };
 
   return (
-    <div className="card" style={{ marginBottom: 20 }}>
+    <div className="modal-wrapper" style={{ marginBottom: 20 }}>
       <h3 style={{ marginTop: 0 }}>Assign Teacher to Subject</h3>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
         <UserSearchSelect
@@ -83,7 +83,8 @@ export default function TeacherAssignments() {
                 {a.subject} · {a.className} {a.section}
                 <button
                   onClick={() => handleUnassign(a.className, a.section, a.subject)}
-                  style={{ background: 'none', border: 'none', color: 'var(--danger)', fontWeight: 700, padding: 0 }}
+                  className="icon-btn"
+                  style={{ background: 'none', border: 'none', color: 'var(--danger)', fontWeight: 700, padding: '2px 4px' }}
                 >
                   ✕
                 </button>

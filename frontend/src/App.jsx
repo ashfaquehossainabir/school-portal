@@ -6,6 +6,7 @@ import Layout from './components/Layout';
 import Login from './pages/Login';
 
 import AdminDashboard from './pages/admin/Dashboard';
+import AdminDirectory from './pages/admin/Directory';
 import AdminUsers from './pages/admin/Users';
 import AdminClasses from './pages/admin/Classes';
 import AdminAttendance from './pages/admin/Attendance';
@@ -60,6 +61,7 @@ export default function App() {
               }
             >
               <Route index element={<AdminDashboard />} />
+              <Route path="directory" element={<AdminDirectory />} />
               <Route path="users" element={<AdminUsers />} />
               <Route path="classes" element={<AdminClasses />} />
               <Route path="attendance" element={<AdminAttendance />} />

@@ -47,7 +47,7 @@ export default function ParentLinkManager() {
   const studentName = (id) => students.find((s) => s._id === id)?.name || 'Unknown student';
 
   return (
-    <div className="card" style={{ marginBottom: 20 }}>
+    <div className="modal-wrapper" style={{ marginBottom: 20 }}>
       <h3 style={{ marginTop: 0 }}>Connect Parents with Students</h3>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
         <UserSearchSelect
@@ -75,7 +75,7 @@ export default function ParentLinkManager() {
       {parents.filter((p) => p.children?.length > 0).length === 0 && (
         <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>No parent-student links yet.</p>
       )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: '350px', overflow: 'auto', paddingRight: '6px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {parents.map((p) =>
           (p.children || []).map((childId) => (
             <div

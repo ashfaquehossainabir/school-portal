@@ -93,7 +93,7 @@ export default function RoutineManager() {
 
   return (
     <div>
-      <div className="card">
+      <div className="modal-wrapper">
         <h3 style={{ marginTop: 0 }}>Edit Weekly Routine</h3>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
           <ClassSectionSelect value={classSection} onChange={setClassSection} />

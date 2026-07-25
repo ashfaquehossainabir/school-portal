@@ -7,6 +7,7 @@ import './Layout.css';
 const NAV_ITEMS = {
   admin: [
     { to: '/admin', label: 'Overview', end: true },
+    { to: '/admin/directory', label: 'Directory' },
     { to: '/admin/users', label: 'Users' },
     { to: '/admin/classes', label: 'Classes' },
     { to: '/admin/attendance', label: 'Attendance' },
@@ -110,7 +111,7 @@ export default function Layout() {
 
       {showLogoutConfirm && (
         <div className="modal-backdrop" onClick={() => setShowLogoutConfirm(false)}>
-          <div className="modal-card card" style={{ maxWidth: 360 }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-card modal-wrapper" style={{ maxWidth: 360 }} onClick={(e) => e.stopPropagation()}>
             <h3 style={{ marginTop: 0 }}>Log out?</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
               You'll need to sign in again to access your dashboard.

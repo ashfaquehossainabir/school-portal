@@ -83,7 +83,7 @@ export default function EditUserModal({ user, onClose, onSaved }) {
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-card card" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-card modal-wrapper" onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
           <h3 style={{ margin: 0 }}>Edit {user.role}: {user.name}</h3>
           <button className="btn btn-outline" style={{ padding: '4px 10px' }} onClick={onClose}>✕</button>

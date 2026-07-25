@@ -36,7 +36,7 @@ export default function NoticeManager() {
 
   return (
     <div>
-      <div className="card" style={{ marginBottom: 20 }}>
+      <div className="modal-wrapper" style={{ marginBottom: 20 }}>
         <h3 style={{ marginTop: 0 }}>Post a Notice</h3>
         <form onSubmit={handleSubmit}>
           <input placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required style={{ marginBottom: 10 }} />

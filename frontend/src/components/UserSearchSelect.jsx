@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import api from '../api/axios';
+import useDebounce from '../hooks/useDebounce';
 
 // Search-and-select input for picking a user (teacher/student/parent) by
 // typing their name, email, or Student ID instead of scrolling a dropdown.
@@ -9,6 +10,7 @@ import api from '../api/axios';
 export default function UserSearchSelect({ role, placeholder, onSelect, excludeIds = [], resetSignal, initialUser = null, width = 240, prioritizeIds = [] }) {
   const [allUsers, setAllUsers] = useState([]);
   const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounce(query, 250);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const boxRef = useRef(null);
@@ -51,13 +53,13 @@ export default function UserSearchSelect({ role, placeholder, onSelect, excludeI
     [...list].sort((a, b) => (prioritySet.has(b._id) ? 1 : 0) - (prioritySet.has(a._id) ? 1 : 0));
 
   const matches =
-    query.trim().length === 0
+    debouncedQuery.trim().length === 0
       ? byPriority(allUsers.filter((u) => !excludeSet.has(u._id))).slice(0, 8)
       : byPriority(
           allUsers
             .filter((u) => !excludeSet.has(u._id))
             .filter((u) => {
-              const q = query.toLowerCase();
+              const q = debouncedQuery.toLowerCase();
               return (
                 u.name?.toLowerCase().includes(q) ||
                 u.email?.toLowerCase().includes(q) ||
@@ -104,6 +106,7 @@ export default function UserSearchSelect({ role, placeholder, onSelect, excludeI
             type="button"
             onClick={handleClear}
             aria-label="Clear selection"
+            className="icon-btn"
             style={{
               position: 'absolute',
               right: 6,

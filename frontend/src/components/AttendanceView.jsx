@@ -86,7 +86,7 @@ export default function AttendanceView({ studentId }) {
             <StatCard label="Late / Excused" value={(stats?.late || 0) + (stats?.excused || 0)} color="var(--warning)" />
           </div>
 
-          <div className="card">
+          <div className="modal-wrapper">
             <h3 style={{ marginTop: 0 }}>Daily Records</h3>
             <div style={{ overflowX: 'auto' }}>
               <table>

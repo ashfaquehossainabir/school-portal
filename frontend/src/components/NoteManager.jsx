@@ -39,7 +39,7 @@ export default function NoteManager() {
 
   return (
     <div>
-      <div className="card" style={{ marginBottom: 20 }}>
+      <div className="modal-wrapper" style={{ marginBottom: 20 }}>
         <h3 style={{ marginTop: 0 }}>Post a Note</h3>
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>

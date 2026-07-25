@@ -3,6 +3,7 @@ import api from '../../api/axios';
 import EditUserModal from '../../components/EditUserModal';
 import TeacherAssignments from '../../components/TeacherAssignments';
 import ParentLinkManager from '../../components/ParentLinkManager';
+import useDebounce from '../../hooks/useDebounce';
 
 const emptyForm = {
   name: '', email: '', password: '', role: 'student',
@@ -17,6 +18,7 @@ export default function AdminUsers() {
   const [msg, setMsg] = useState('');
   const [editingUser, setEditingUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const loadUsers = () => {
     api.get('/users', { params: filterRole ? { role: filterRole } : {} }).then((res) => setUsers(res.data));
@@ -25,7 +27,7 @@ export default function AdminUsers() {
   useEffect(loadUsers, [filterRole]);
 
   const filteredUsers = users.filter((u) => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = debouncedSearchQuery.trim().toLowerCase();
     if (!q) return true;
     return (
       u.name?.toLowerCase().includes(q) ||
@@ -56,7 +58,7 @@ export default function AdminUsers() {
     <div>
       <h2 style={{ marginTop: 0 }}>Users</h2>
 
-      <div className="card" style={{ marginBottom: 20 }}>
+      <div className="modal-wrapper" style={{ marginBottom: 20 }}>
         <h3 style={{ marginTop: 0 }}>Create Account</h3>
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-3" style={{ marginBottom: 12 }}>
@@ -107,7 +109,7 @@ export default function AdminUsers() {
 
       <ParentLinkManager />
 
-      <div className="card">
+      <div className="modal-wrapper">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
           <h3 style={{ margin: 0 }}>All Users</h3>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -127,7 +129,7 @@ export default function AdminUsers() {
             </select>
           </div>
         </div>
-        <div style={{ overflowX: 'auto', maxHeight: '555px', overflow: 'auto', paddingRight: '8px' }}>
+        <div style={{ overflowX: 'auto' }}>
           <table>
             <thead>
               <tr>

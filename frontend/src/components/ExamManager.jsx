@@ -78,7 +78,7 @@ export default function ExamManager() {
 
   return (
     <div>
-      <div className="card" style={{ marginBottom: 20 }}>
+      <div className="modal-wrapper" style={{ marginBottom: 20 }}>
         <h3 style={{ marginTop: 0 }}>Publish Exam Schedule</h3>
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
@@ -125,7 +125,7 @@ export default function ExamManager() {
       <h3>Published Schedules</h3>
       {exams.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>No exam schedules yet for this class.</p>}
       {exams.map((exam) => (
-        <div className="card" key={exam._id} style={{ marginBottom: 14 }}>
+        <div className="modal-wrapper" key={exam._id} style={{ marginBottom: 14 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h4 style={{ margin: 0 }}>{exam.title}</h4>
             <button className="btn btn-danger" onClick={() => handleDelete(exam._id)}>Delete</button>

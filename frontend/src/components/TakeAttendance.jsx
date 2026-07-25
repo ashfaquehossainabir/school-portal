@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
 import ClassSectionSelect from './ClassSectionSelect';
+import useDebounce from '../hooks/useDebounce';
 
 const STATUS_OPTIONS = ['present', 'absent', 'late', 'excused'];
 
@@ -11,6 +12,7 @@ export default function TakeAttendance() {
   const [statusMap, setStatusMap] = useState({});
   const [remarksMap, setRemarksMap] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState('');
@@ -62,7 +64,7 @@ export default function TakeAttendance() {
   };
 
   const filteredStudents = students.filter((s) => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = debouncedSearchQuery.trim().toLowerCase();
     if (!q) return true;
     return (
       s.name?.toLowerCase().includes(q) ||
@@ -110,7 +112,7 @@ export default function TakeAttendance() {
       ) : students.length === 0 ? (
         <p style={{ color: 'var(--text-secondary)' }}>No students found in this class/section.</p>
       ) : (
-        <div className="card">
+        <div className="modal-wrapper">
           <div style={{ overflowX: 'auto' }}>
             <table>
               <thead>
