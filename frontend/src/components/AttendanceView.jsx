@@ -39,7 +39,6 @@ export default function AttendanceView({ studentId }) {
   }, [studentId, month, year]);
 
   const { stats, records } = data;
-  const pct = stats?.percentage || 0;
 
   const recordsByDay = useMemo(() => {
     const map = {};
@@ -106,44 +105,14 @@ export default function AttendanceView({ studentId }) {
       ) : (
         <>
           <div className="av-stats-grid" style={{ marginBottom: 20 }}>
-            <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div
-                style={{
-                  width: 76,
-                  height: 76,
-                  borderRadius: '50%',
-                  background: `conic-gradient(var(--success) ${pct * 3.6}deg, var(--border-color) 0deg)`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-              >
-                <div
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: '50%',
-                    background: 'var(--bg-secondary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 700,
-                    fontSize: 15,
-                  }}
-                >
-                  {pct}%
-                </div>
-              </div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 15 }}>Attendance Rate</div>
-                <div style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-                  {stats?.schoolDays ?? stats?.total ?? 0} school days recorded
-                </div>
-              </div>
-            </div>
             {PERSONAL_STATUS_OPTIONS.map((s) => (
-              <StatCard key={s} label={STATUS_LABELS[s]} value={stats?.[s] || 0} color={STATUS_COLORS[s]} />
+              <StatCard
+                key={s}
+                label={STATUS_LABELS[s]}
+                value={stats?.[s] || 0}
+                color={STATUS_COLORS[s]}
+                icon={<span className="av-stat-dot" style={{ background: STATUS_COLORS[s] }} />}
+              />
             ))}
           </div>
 
@@ -248,8 +217,15 @@ export default function AttendanceView({ studentId }) {
         }
         .av-stats-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+          /* Desktop: 6 evenly-sized cards in a single row */
+          grid-template-columns: repeat(6, 1fr);
           gap: 14px;
+        }
+        .av-stat-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          display: inline-block;
         }
         .av-calendar-head {
           display: flex;
@@ -359,7 +335,7 @@ export default function AttendanceView({ studentId }) {
         /* ===== Laptop (901px–1024px) ===== */
         @media (max-width: 1024px) {
           .av-stats-grid {
-            grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 12px;
           }
           .av-calendar-panel {
@@ -370,7 +346,7 @@ export default function AttendanceView({ studentId }) {
         /* ===== Tablet (641px–900px) ===== */
         @media (max-width: 900px) {
           .av-stats-grid {
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 10px;
           }
           .av-calendar-panel {
@@ -408,9 +384,6 @@ export default function AttendanceView({ studentId }) {
           .av-stats-grid {
             grid-template-columns: repeat(2, 1fr);
             gap: 8px;
-          }
-          .av-stats-grid > div:first-child {
-            grid-column: 1 / -1;
           }
           .av-calendar-panel {
             padding: 14px !important;
