@@ -4,24 +4,14 @@ import ClassSectionSelect from './ClassSectionSelect';
 import StatCard from './StatCard';
 import useDebounce from '../hooks/useDebounce';
 import { STATUS_LABELS, STATUS_OPTIONS, STATUS_COLORS } from '../utils/attendanceStatus';
+import { todayLocalStr, dateRangeUTC } from '../utils/dateOnly';
 
-const todayStr = () => new Date().toISOString().slice(0, 10);
+const todayStr = todayLocalStr;
 
 // Inclusive list of yyyy-mm-dd strings between two dates, capped at 62 days
 // so a mistyped range can't trigger hundreds of writes.
 function dateRange(startStr, endStr) {
-  const start = new Date(startStr);
-  const end = new Date(endStr);
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) return [];
-  const days = [];
-  const cursor = new Date(start);
-  let guard = 0;
-  while (cursor <= end && guard < 62) {
-    days.push(cursor.toISOString().slice(0, 10));
-    cursor.setDate(cursor.getDate() + 1);
-    guard += 1;
-  }
-  return days;
+  return dateRangeUTC(startStr, endStr, 62);
 }
 
 export default function TakeAttendance() {

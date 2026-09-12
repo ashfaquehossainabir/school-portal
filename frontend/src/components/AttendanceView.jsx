@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import api from '../api/axios';
 import StatCard from './StatCard';
-import { STATUS_LABELS, STATUS_OPTIONS, STATUS_COLORS } from '../utils/attendanceStatus';
+import { STATUS_LABELS, STATUS_OPTIONS, PERSONAL_STATUS_OPTIONS, STATUS_COLORS } from '../utils/attendanceStatus';
+import { utcDay, formatUTCDate } from '../utils/dateOnly';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -43,7 +44,7 @@ export default function AttendanceView({ studentId }) {
   const recordsByDay = useMemo(() => {
     const map = {};
     records.forEach((r) => {
-      map[new Date(r.date).getDate()] = r;
+      map[utcDay(r.date)] = r;
     });
     return map;
   }, [records]);
@@ -136,10 +137,12 @@ export default function AttendanceView({ studentId }) {
               </div>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 15 }}>Attendance Rate</div>
-                <div style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{stats?.total || 0} days recorded</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
+                  {stats?.schoolDays ?? stats?.total ?? 0} school days recorded
+                </div>
               </div>
             </div>
-            {STATUS_OPTIONS.map((s) => (
+            {PERSONAL_STATUS_OPTIONS.map((s) => (
               <StatCard key={s} label={STATUS_LABELS[s]} value={stats?.[s] || 0} color={STATUS_COLORS[s]} />
             ))}
           </div>
@@ -180,7 +183,7 @@ export default function AttendanceView({ studentId }) {
                   ) : (
                     <div key={cell.day} className="av-day-cell">
                       <span className="av-day-number">{cell.day}</span>
-                      {cell.record && (
+                      {cell.record ? (
                         <span
                           className="av-day-status"
                           style={{ color: STATUS_COLORS[cell.record.status] }}
@@ -188,6 +191,11 @@ export default function AttendanceView({ studentId }) {
                         >
                           <span className="av-day-status-full">{STATUS_LABELS[cell.record.status]}</span>
                           <span className="av-day-status-short">{STATUS_SHORT[cell.record.status]}</span>
+                        </span>
+                      ) : (
+                        <span className="av-day-status av-day-status-na" title="Attendance not set">
+                          <span className="av-day-status-full">N/A</span>
+                          <span className="av-day-status-short">N/A</span>
                         </span>
                       )}
                     </div>
@@ -213,7 +221,7 @@ export default function AttendanceView({ studentId }) {
                     )}
                     {records.map((r) => (
                       <tr key={r._id}>
-                        <td>{new Date(r.date).toLocaleDateString()}</td>
+                        <td>{formatUTCDate(r.date)}</td>
                         <td><span className={`badge badge-${r.status}`}>{STATUS_LABELS[r.status]}</span></td>
                         <td>{r.remarks || '—'}</td>
                       </tr>
@@ -341,6 +349,11 @@ export default function AttendanceView({ studentId }) {
         }
         .av-day-status-short {
           display: none;
+        }
+        .av-day-status-na {
+          color: var(--text-muted);
+          font-weight: 600;
+          opacity: 0.6;
         }
 
         /* ===== Laptop (901px–1024px) ===== */

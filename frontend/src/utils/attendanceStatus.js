@@ -13,6 +13,13 @@ export const STATUS_LABELS = {
 
 export const STATUS_OPTIONS = Object.keys(STATUS_LABELS);
 
+// Personal attendance-rate views (student/parent) tally a student's own
+// day-by-day outcomes. "Holiday" isn't a personal outcome — it's a school-wide
+// non-school-day, already excluded from the rate calculation itself — so it's
+// left out of that tally to avoid implying it counts toward the student's
+// attendance the way Present/Absent/Late etc. do.
+export const PERSONAL_STATUS_OPTIONS = STATUS_OPTIONS.filter((s) => s !== 'holiday');
+
 // Matches the .badge-<status> classes in styles/theme.css
 export const STATUS_COLORS = {
   present: 'var(--success)',

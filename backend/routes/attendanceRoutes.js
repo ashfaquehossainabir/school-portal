@@ -1,6 +1,7 @@
 const express = require('express');
 const Attendance = require('../models/Attendance');
 const { protect, authorize } = require('../middleware/auth');
+const { parseDateOnly, monthStartUTC, monthEndUTC, addDaysUTC } = require('../utils/dateOnly');
 
 const router = express.Router();
 
@@ -11,10 +12,8 @@ router.get('/class', protect, authorize('admin', 'teacher'), async (req, res) =>
     if (!className || !section || !date) {
       return res.status(400).json({ message: 'className, section, date required' });
     }
-    const day = new Date(date);
-    day.setHours(0, 0, 0, 0);
-    const nextDay = new Date(day);
-    nextDay.setDate(day.getDate() + 1);
+    const day = parseDateOnly(date);
+    const nextDay = addDaysUTC(day, 1);
 
     const records = await Attendance.find({
       className,
@@ -37,8 +36,7 @@ router.post('/mark', protect, authorize('admin', 'teacher'), async (req, res) =>
     if (!className || !section || !date || !Array.isArray(records)) {
       return res.status(400).json({ message: 'className, section, date, records[] required' });
     }
-    const day = new Date(date);
-    day.setHours(0, 0, 0, 0);
+    const day = parseDateOnly(date);
 
     const results = await Promise.all(
       records.map((r) =>
@@ -80,9 +78,7 @@ router.get('/student/:studentId', protect, async (req, res) => {
 
     const filter = { student: studentId };
     if (month && year) {
-      const start = new Date(Number(year), Number(month) - 1, 1);
-      const end = new Date(Number(year), Number(month), 1);
-      filter.date = { $gte: start, $lt: end };
+      filter.date = { $gte: monthStartUTC(year, month), $lt: monthEndUTC(year, month) };
     }
 
     const records = await Attendance.find(filter).sort({ date: -1 });
@@ -104,7 +100,10 @@ router.get('/student/:studentId', protect, async (req, res) => {
 
     res.json({
       records,
-      stats: { total, ...counts, percentage },
+      // schoolDays is the actual denominator behind `percentage` (holidays
+      // excluded) — the frontend uses it instead of `total` so the "X days
+      // recorded" label always matches the rate shown next to it.
+      stats: { total, schoolDays, ...counts, percentage },
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -133,8 +132,7 @@ router.post('/off-day', protect, authorize('admin', 'teacher'), async (req, res)
 
     const ops = [];
     dates.forEach((d) => {
-      const day = new Date(d);
-      day.setHours(0, 0, 0, 0);
+      const day = parseDateOnly(d);
       studentIds.forEach((studentId) => {
         ops.push(
           Attendance.findOneAndUpdate(
