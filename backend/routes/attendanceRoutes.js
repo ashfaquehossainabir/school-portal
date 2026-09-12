@@ -1,9 +1,78 @@
 const express = require('express');
 const Attendance = require('../models/Attendance');
+const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
 const { parseDateOnly, monthStartUTC, monthEndUTC, addDaysUTC } = require('../utils/dateOnly');
 
 const router = express.Router();
+
+// Shared math: given raw status counts for a student/month, derive the
+// same schoolDays/percentage figures used everywhere else in the app.
+function computeStats(counts, total) {
+  const schoolDays = total - counts.holiday;
+  const presentEquivalent = counts.present + counts.late + counts['half-day'] * 0.5;
+  const percentage = schoolDays > 0 ? Math.round((presentEquivalent / schoolDays) * 1000) / 10 : 0;
+  return { total, schoolDays, percentage };
+}
+
+// GET a school-wide attendance report for a given month — every student's
+// tallies + rate in one call, so the admin report page isn't firing one
+// request per student. Optional className/section narrow the roster.
+router.get('/report', protect, authorize('admin'), async (req, res) => {
+  try {
+    const { month, year, className, section } = req.query;
+    if (!month || !year) {
+      return res.status(400).json({ message: 'month and year required' });
+    }
+
+    const studentFilter = { role: 'student' };
+    if (className) studentFilter.className = className;
+    if (section) studentFilter.section = section;
+
+    const students = await User.find(studentFilter)
+      .select('name studentId className section roll')
+      .sort({ className: 1, section: 1, name: 1 });
+
+    const studentIds = students.map((s) => s._id);
+    const records = await Attendance.find({
+      student: { $in: studentIds },
+      date: { $gte: monthStartUTC(year, month), $lt: monthEndUTC(year, month) },
+    }).select('student status');
+
+    const byStudent = {};
+    records.forEach((r) => {
+      const id = r.student.toString();
+      if (!byStudent[id]) {
+        byStudent[id] = {};
+        Attendance.STATUS_VALUES.forEach((s) => {
+          byStudent[id][s] = 0;
+        });
+      }
+      if (byStudent[id][r.status] !== undefined) byStudent[id][r.status] += 1;
+    });
+
+    const report = students.map((s) => {
+      const counts = byStudent[s._id.toString()] || Object.fromEntries(Attendance.STATUS_VALUES.map((v) => [v, 0]));
+      const total = Object.values(counts).reduce((sum, n) => sum + n, 0);
+      return {
+        student: {
+          _id: s._id,
+          name: s.name,
+          studentId: s.studentId,
+          className: s.className,
+          section: s.section,
+          roll: s.roll,
+        },
+        ...counts,
+        ...computeStats(counts, total),
+      };
+    });
+
+    res.json({ month: Number(month), year: Number(year), report });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 // GET attendance for a class on a specific date (teacher/admin taking attendance)
 router.get('/class', protect, authorize('admin', 'teacher'), async (req, res) => {
@@ -92,18 +161,12 @@ router.get('/student/:studentId', protect, async (req, res) => {
     });
 
     const total = records.length;
-    // Holidays aren't school days, so they're excluded from the attendance-rate
-    // denominator. Half-days count as half a present day toward the rate.
-    const schoolDays = total - counts.holiday;
-    const presentEquivalent = counts.present + counts.late + counts['half-day'] * 0.5;
-    const percentage = schoolDays > 0 ? Math.round((presentEquivalent / schoolDays) * 1000) / 10 : 0;
-
     res.json({
       records,
       // schoolDays is the actual denominator behind `percentage` (holidays
       // excluded) — the frontend uses it instead of `total` so the "X days
       // recorded" label always matches the rate shown next to it.
-      stats: { total, schoolDays, ...counts, percentage },
+      stats: { ...counts, ...computeStats(counts, total) },
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

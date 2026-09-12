@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import api from '../api/axios';
 import StatCard from './StatCard';
-import { STATUS_LABELS, STATUS_OPTIONS, PERSONAL_STATUS_OPTIONS, STATUS_COLORS } from '../utils/attendanceStatus';
+import { STATUS_LABELS, STATUS_OPTIONS, PERSONAL_STATUS_OPTIONS, STATUS_COLORS, STATUS_SHORT } from '../utils/attendanceStatus';
 import { utcDay, formatUTCDate } from '../utils/dateOnly';
 
 const MONTHS = [
@@ -10,15 +10,6 @@ const MONTHS = [
 ];
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const WEEKDAYS_SHORT = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const STATUS_SHORT = {
-  present: 'P',
-  absent: 'A',
-  late: 'Lt',
-  excused: 'Ex',
-  'half-day': 'HD',
-  leave: 'Lv',
-  holiday: 'Hol',
-};
 
 export default function AttendanceView({ studentId }) {
   const now = new Date();

@@ -57,7 +57,7 @@ export default function TakeAttendance() {
         const statusInit = {};
         const remarksInit = {};
         studentsRes.data.forEach((s) => {
-          statusInit[s._id] = existingStatus[s._id] || 'present';
+          statusInit[s._id] = existingStatus[s._id] || '';
           remarksInit[s._id] = existingRemarks[s._id] || '';
         });
         setStatusMap(statusInit);
@@ -109,24 +109,41 @@ export default function TakeAttendance() {
   const summary = useMemo(() => {
     const counts = {};
     STATUS_OPTIONS.forEach((s) => (counts[s] = 0));
+    let notMarked = 0;
     students.forEach((s) => {
       const status = statusMap[s._id];
       if (status) counts[status] += 1;
+      else notMarked += 1;
     });
-    return counts;
+    return { ...counts, notMarked };
   }, [students, statusMap]);
 
   const handleSave = async () => {
     setSaving(true);
     setSavedMsg('');
     try {
-      const records = students.map((s) => ({
-        studentId: s._id,
-        status: statusMap[s._id],
-        remarks: remarksMap[s._id] || '',
-      }));
+      // Students still left as "Not marked" aren't sent — there's nothing
+      // valid to save for them, and they simply stay unmarked until set.
+      const records = students
+        .filter((s) => statusMap[s._id])
+        .map((s) => ({
+          studentId: s._id,
+          status: statusMap[s._id],
+          remarks: remarksMap[s._id] || '',
+        }));
+
+      if (records.length === 0) {
+        setSavedMsg('Mark at least one student before saving.');
+        return;
+      }
+
       await api.post('/attendance/mark', { ...classSection, date, records });
-      setSavedMsg('Attendance saved and synced to student dashboards.');
+      const skipped = students.length - records.length;
+      setSavedMsg(
+        skipped > 0
+          ? `Attendance saved for ${records.length} student${records.length === 1 ? '' : 's'} and synced to student dashboards. ${skipped} left as Not marked.`
+          : 'Attendance saved and synced to student dashboards.'
+      );
     } catch (err) {
       setSavedMsg(err.response?.data?.message || 'Failed to save attendance');
     } finally {
@@ -223,8 +240,20 @@ export default function TakeAttendance() {
 
       {classSection.className && (
         <div className="ta-summary-grid" style={{ marginBottom: 20 }}>
+          <StatCard
+            label="Not marked"
+            value={summary.notMarked}
+            color="var(--text-muted)"
+            icon={<span className="ta-stat-dot ta-stat-dot-na" />}
+          />
           {STATUS_OPTIONS.map((s) => (
-            <StatCard key={s} label={STATUS_LABELS[s]} value={summary[s]} color={STATUS_COLORS[s]} />
+            <StatCard
+              key={s}
+              label={STATUS_LABELS[s]}
+              value={summary[s]}
+              color={STATUS_COLORS[s]}
+              icon={<span className="ta-stat-dot" style={{ background: STATUS_COLORS[s] }} />}
+            />
           ))}
         </div>
       )}
@@ -409,6 +438,16 @@ export default function TakeAttendance() {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
           gap: 14px;
+        }
+        .ta-stat-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          display: inline-block;
+        }
+        .ta-stat-dot-na {
+          background: var(--text-muted);
+          opacity: 0.6;
         }
         .ta-offday-fields {
           display: grid;

@@ -31,6 +31,18 @@ export const STATUS_COLORS = {
   holiday: '#64748b',
 };
 
+// Compact column/legend labels — used by the calendar day cells and the
+// admin attendance report table, where full labels don't fit.
+export const STATUS_SHORT = {
+  present: 'P',
+  absent: 'A',
+  late: 'Lt',
+  excused: 'Ex',
+  'half-day': 'HD',
+  leave: 'Lv',
+  holiday: 'Hol',
+};
+
 // Statuses that count toward "days present" in attendance-rate style math
 // (present + late + half-day counted as 0.5).
 export const PRESENT_WEIGHT = {
