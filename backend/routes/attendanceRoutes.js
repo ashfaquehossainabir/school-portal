@@ -87,16 +87,79 @@ router.get('/student/:studentId', protect, async (req, res) => {
 
     const records = await Attendance.find(filter).sort({ date: -1 });
 
+    const counts = {};
+    Attendance.STATUS_VALUES.forEach((s) => {
+      counts[s] = 0;
+    });
+    records.forEach((r) => {
+      if (counts[r.status] !== undefined) counts[r.status] += 1;
+    });
+
     const total = records.length;
-    const present = records.filter((r) => r.status === 'present').length;
-    const absent = records.filter((r) => r.status === 'absent').length;
-    const late = records.filter((r) => r.status === 'late').length;
-    const excused = records.filter((r) => r.status === 'excused').length;
-    const percentage = total > 0 ? Math.round(((present + late) / total) * 1000) / 10 : 0;
+    // Holidays aren't school days, so they're excluded from the attendance-rate
+    // denominator. Half-days count as half a present day toward the rate.
+    const schoolDays = total - counts.holiday;
+    const presentEquivalent = counts.present + counts.late + counts['half-day'] * 0.5;
+    const percentage = schoolDays > 0 ? Math.round((presentEquivalent / schoolDays) * 1000) / 10 : 0;
 
     res.json({
       records,
-      stats: { total, present, absent, late, excused, percentage },
+      stats: { total, ...counts, percentage },
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST bulk-set an off day (holiday/leave) for selected students across a date range.
+// Body: { className, section, studentIds: [...], dates: [...], status?, notes? }
+router.post('/off-day', protect, authorize('admin', 'teacher'), async (req, res) => {
+  try {
+    const { className, section, studentIds, dates, status = 'holiday', notes } = req.body;
+
+    if (!className || !section || !Array.isArray(studentIds) || studentIds.length === 0) {
+      return res.status(400).json({ message: 'className, section, studentIds[] required' });
+    }
+    if (!Array.isArray(dates) || dates.length === 0) {
+      return res.status(400).json({ message: 'dates[] required' });
+    }
+    if (!Attendance.STATUS_VALUES.includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+    // Cap so a mistyped date range can't trigger thousands of writes
+    if (dates.length > 62) {
+      return res.status(400).json({ message: 'Date range too large (max 62 days)' });
+    }
+
+    const ops = [];
+    dates.forEach((d) => {
+      const day = new Date(d);
+      day.setHours(0, 0, 0, 0);
+      studentIds.forEach((studentId) => {
+        ops.push(
+          Attendance.findOneAndUpdate(
+            { student: studentId, date: day },
+            {
+              student: studentId,
+              className,
+              section,
+              date: day,
+              status,
+              remarks: notes || '',
+              markedBy: req.user._id,
+            },
+            { new: true, upsert: true, setDefaultsOnInsert: true }
+          )
+        );
+      });
+    });
+
+    const results = await Promise.all(ops);
+    res.json({
+      message: 'Off day set',
+      count: results.length,
+      studentCount: studentIds.length,
+      dayCount: dates.length,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

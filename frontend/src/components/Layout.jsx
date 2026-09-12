@@ -2,43 +2,89 @@ import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import NavIcon from './NavIcon';
 import './Layout.css';
 
-const NAV_ITEMS = {
+const NAV_GROUPS = {
   admin: [
-    { to: '/admin', label: 'Overview', end: true },
-    { to: '/admin/directory', label: 'Directory' },
-    { to: '/admin/users', label: 'Users' },
-    { to: '/admin/classes', label: 'Classes' },
-    { to: '/admin/attendance', label: 'Attendance' },
-    { to: '/admin/exams', label: 'Exam Schedule' },
-    { to: '/admin/routine', label: 'Class Routine' },
-    { to: '/admin/notes', label: 'Notes' },
-    { to: '/admin/notices', label: 'Notices' },
+    { items: [{ to: '/admin', label: 'Overview', icon: 'overview', end: true }] },
+    {
+      label: 'People',
+      items: [
+        { to: '/admin/directory', label: 'Directory', icon: 'directory' },
+        { to: '/admin/users', label: 'Users', icon: 'users' },
+      ],
+    },
+    {
+      label: 'Academics',
+      items: [
+        { to: '/admin/classes', label: 'Classes', icon: 'classes' },
+        { to: '/admin/attendance', label: 'Attendance', icon: 'attendance' },
+        { to: '/admin/exams', label: 'Exam schedule', icon: 'exams' },
+        { to: '/admin/routine', label: 'Class routine', icon: 'routine' },
+      ],
+    },
+    {
+      label: 'Communication',
+      items: [
+        { to: '/admin/notes', label: 'Notes', icon: 'notes' },
+        { to: '/admin/notices', label: 'Notices', icon: 'notices' },
+      ],
+    },
   ],
   teacher: [
-    { to: '/teacher', label: 'Overview', end: true },
-    { to: '/teacher/attendance', label: 'Take Attendance' },
-    { to: '/teacher/exams', label: 'Exam Schedule' },
-    { to: '/teacher/routine', label: 'Class Routine' },
-    { to: '/teacher/notes', label: 'Notes' },
-    { to: '/teacher/notices', label: 'Notices' },
+    { items: [{ to: '/teacher', label: 'Overview', icon: 'overview', end: true }] },
+    {
+      label: 'Classroom',
+      items: [
+        { to: '/teacher/attendance', label: 'Take attendance', icon: 'attendance' },
+        { to: '/teacher/exams', label: 'Exam schedule', icon: 'exams' },
+        { to: '/teacher/routine', label: 'Class routine', icon: 'routine' },
+      ],
+    },
+    {
+      label: 'Communication',
+      items: [
+        { to: '/teacher/notes', label: 'Notes', icon: 'notes' },
+        { to: '/teacher/notices', label: 'Notices', icon: 'notices' },
+      ],
+    },
   ],
   student: [
-    { to: '/student', label: 'Overview', end: true },
-    { to: '/student/attendance', label: 'Attendance' },
-    { to: '/student/exams', label: 'Exam Schedule' },
-    { to: '/student/routine', label: 'Class Routine' },
-    { to: '/student/notes', label: 'Notes' },
-    { to: '/student/notices', label: 'Notices' },
+    { items: [{ to: '/student', label: 'Overview', icon: 'overview', end: true }] },
+    {
+      label: 'Academics',
+      items: [
+        { to: '/student/attendance', label: 'Attendance', icon: 'attendance' },
+        { to: '/student/exams', label: 'Exam schedule', icon: 'exams' },
+        { to: '/student/routine', label: 'Class routine', icon: 'routine' },
+      ],
+    },
+    {
+      label: 'Communication',
+      items: [
+        { to: '/student/notes', label: 'Notes', icon: 'notes' },
+        { to: '/student/notices', label: 'Notices', icon: 'notices' },
+      ],
+    },
   ],
   parent: [
-    { to: '/parent', label: 'Overview', end: true },
-    { to: '/parent/attendance', label: 'Attendance' },
-    { to: '/parent/exams', label: 'Exam Schedule' },
-    { to: '/parent/routine', label: 'Class Routine' },
-    { to: '/parent/notes', label: 'Notes' },
-    { to: '/parent/notices', label: 'Notices' },
+    { items: [{ to: '/parent', label: 'Overview', icon: 'overview', end: true }] },
+    {
+      label: 'Academics',
+      items: [
+        { to: '/parent/attendance', label: 'Attendance', icon: 'attendance' },
+        { to: '/parent/exams', label: 'Exam schedule', icon: 'exams' },
+        { to: '/parent/routine', label: 'Class routine', icon: 'routine' },
+      ],
+    },
+    {
+      label: 'Communication',
+      items: [
+        { to: '/parent/notes', label: 'Notes', icon: 'notes' },
+        { to: '/parent/notices', label: 'Notices', icon: 'notices' },
+      ],
+    },
   ],
 };
 
@@ -49,7 +95,7 @@ export default function Layout() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const navigate = useNavigate();
 
-  const items = NAV_ITEMS[user?.role] || [];
+  const groups = NAV_GROUPS[user?.role] || [];
 
   const confirmLogout = () => {
     setShowLogoutConfirm(false);
@@ -61,24 +107,31 @@ export default function Layout() {
     <div className="layout">
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-brand">
-          <span className="brand-dot" />
-          EduPortal
+          <span className="brand-mark">E</span>
+          <span>EduPortal</span>
         </div>
         <nav className="sidebar-nav">
-          {items.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-              onClick={() => setSidebarOpen(false)}
-            >
-              {item.label}
-            </NavLink>
+          {groups.map((group, gi) => (
+            <div className="sidebar-group" key={group.label || `g${gi}`}>
+              {group.label && <div className="sidebar-group-label">{group.label}</div>}
+              {group.items.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <NavIcon name={item.icon} />
+                  <span>{item.label}</span>
+                </NavLink>
+              ))}
+            </div>
           ))}
         </nav>
         <div className="sidebar-footer">
-          <button className="btn btn-outline" style={{ width: '100%' }} onClick={() => setShowLogoutConfirm(true)}>
+          <button className="btn btn-outline sidebar-logout" onClick={() => setShowLogoutConfirm(true)}>
+            <NavIcon name="logout" size={16} />
             Log out
           </button>
         </div>
@@ -92,7 +145,7 @@ export default function Layout() {
             <span /><span /><span />
           </button>
           <div className="topbar-title">
-            Welcome, {user?.name?.split(' ')[0]}
+            <span className="topbar-greeting">Welcome, {user?.name?.split(' ')[0]}</span>
             <span className={`role-badge role-${user?.role}`}>{user?.role}</span>
           </div>
           <div className="topbar-actions">
@@ -105,7 +158,9 @@ export default function Layout() {
           </div>
         </header>
         <main className="content">
-          <Outlet />
+          <div className="page">
+            <Outlet />
+          </div>
         </main>
       </div>
 

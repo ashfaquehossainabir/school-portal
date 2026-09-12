@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+const STATUS_VALUES = ['present', 'absent', 'late', 'excused', 'half-day', 'leave', 'holiday'];
+
 const attendanceSchema = new mongoose.Schema(
   {
     student: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -8,7 +10,7 @@ const attendanceSchema = new mongoose.Schema(
     date: { type: Date, required: true },
     status: {
       type: String,
-      enum: ['present', 'absent', 'late', 'excused'],
+      enum: STATUS_VALUES,
       required: true,
     },
     remarks: { type: String },
@@ -19,5 +21,7 @@ const attendanceSchema = new mongoose.Schema(
 
 // One attendance record per student per day
 attendanceSchema.index({ student: 1, date: 1 }, { unique: true });
+
+attendanceSchema.statics.STATUS_VALUES = STATUS_VALUES;
 
 module.exports = mongoose.model('Attendance', attendanceSchema);
