@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import api from '../api/axios';
 import useDebounce from '../hooks/useDebounce';
-import { STATUS_LABELS, PERSONAL_STATUS_OPTIONS, STATUS_SHORT, STATUS_COLORS } from '../utils/attendanceStatus';
+import { STATUS_LABELS, STATUS_OPTIONS, STATUS_SHORT, STATUS_COLORS } from '../utils/attendanceStatus';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -110,7 +110,7 @@ export default function AttendanceReport() {
                   <th>ID</th>
                   <th>Name</th>
                   <th>Class</th>
-                  {PERSONAL_STATUS_OPTIONS.map((s) => (
+                  {STATUS_OPTIONS.map((s) => (
                     <th key={s} title={STATUS_LABELS[s]} style={{ color: STATUS_COLORS[s] }}>
                       {STATUS_SHORT[s]}
                     </th>
@@ -121,7 +121,7 @@ export default function AttendanceReport() {
               <tbody>
                 {filteredReport.length === 0 && (
                   <tr>
-                    <td colSpan={4 + PERSONAL_STATUS_OPTIONS.length} style={{ color: 'var(--text-secondary)' }}>
+                    <td colSpan={4 + STATUS_OPTIONS.length} style={{ color: 'var(--text-secondary)' }}>
                       No students match this search.
                     </td>
                   </tr>
@@ -131,7 +131,7 @@ export default function AttendanceReport() {
                     <td>{r.student.studentId || r.student.roll || '—'}</td>
                     <td>{r.student.name}</td>
                     <td>{r.student.className} - {r.student.section}</td>
-                    {PERSONAL_STATUS_OPTIONS.map((s) => (
+                    {STATUS_OPTIONS.map((s) => (
                       <td key={s}>{r[s] || 0}</td>
                     ))}
                     <td style={{ fontWeight: 700 }}>{r.percentage}%</td>
@@ -156,7 +156,7 @@ export default function AttendanceReport() {
           min-width: 180px;
         }
         .ar-table {
-          min-width: 640px;
+          min-width: 720px;
         }
 
         /* ===== Laptop (901px–1024px) ===== */
@@ -191,7 +191,7 @@ export default function AttendanceReport() {
           }
           .ar-table {
             font-size: 12.5px;
-            min-width: 560px;
+            min-width: 620px;
           }
         }
       `}</style>
