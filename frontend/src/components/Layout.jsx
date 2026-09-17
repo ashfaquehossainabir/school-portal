@@ -21,6 +21,8 @@ const NAV_GROUPS = {
         { to: '/admin/classes', label: 'Classes', icon: 'classes' },
         { to: '/admin/attendance', label: 'Attendance', icon: 'attendance' },
         { to: '/admin/exams', label: 'Exam schedule', icon: 'exams' },
+        { to: '/admin/online-exams', label: 'Online exams', icon: 'onlineExam' },
+        { to: '/admin/fees', label: 'Fee Management', icon: 'fees' },
         { to: '/admin/routine', label: 'Class routine', icon: 'routine' },
       ],
     },
@@ -39,6 +41,7 @@ const NAV_GROUPS = {
       items: [
         { to: '/teacher/attendance', label: 'Take attendance', icon: 'attendance' },
         { to: '/teacher/exams', label: 'Exam schedule', icon: 'exams' },
+        { to: '/teacher/online-exams', label: 'Online exams', icon: 'onlineExam' },
         { to: '/teacher/routine', label: 'Class routine', icon: 'routine' },
       ],
     },
@@ -57,6 +60,7 @@ const NAV_GROUPS = {
       items: [
         { to: '/student/attendance', label: 'Attendance', icon: 'attendance' },
         { to: '/student/exams', label: 'Exam schedule', icon: 'exams' },
+        { to: '/student/online-exams', label: 'Online exams', icon: 'onlineExam' },
         { to: '/student/routine', label: 'Class routine', icon: 'routine' },
       ],
     },
@@ -75,6 +79,8 @@ const NAV_GROUPS = {
       items: [
         { to: '/parent/attendance', label: 'Attendance', icon: 'attendance' },
         { to: '/parent/exams', label: 'Exam schedule', icon: 'exams' },
+        { to: '/parent/online-exams', label: 'Online exams', icon: 'onlineExam' },
+        { to: '/parent/fees', label: 'Fee Status', icon: 'fees' },
         { to: '/parent/routine', label: 'Class routine', icon: 'routine' },
       ],
     },

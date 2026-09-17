@@ -359,6 +359,20 @@ button[style*='background:none']:hover {
 .badge-leave { background: rgba(13, 148, 136, 0.14); color: #0d9488; }
 .badge-holiday { background: var(--bg-sunken); color: var(--text-muted); }
 
+/* Online exam status badges — same token set as attendance badges above */
+.badge-draft { background: var(--bg-sunken); color: var(--text-muted); }
+.badge-published { background: var(--info-soft); color: var(--info); }
+.badge-closed { background: var(--bg-sunken); color: var(--text-muted); }
+.badge-in-progress { background: var(--warning-soft); color: var(--warning); }
+.badge-submitted { background: var(--info-soft); color: var(--info); }
+.badge-graded { background: var(--success-soft); color: var(--success); }
+
+/* Fee invoice status badges */
+.badge-unpaid { background: var(--bg-sunken); color: var(--text-muted); }
+.badge-partial { background: var(--warning-soft); color: var(--warning); }
+.badge-paid { background: var(--success-soft); color: var(--success); }
+.badge-overdue { background: var(--danger-soft); color: var(--danger); }
+
 button.badge {
   transition: filter 0.15s ease, transform 0.1s ease;
 }

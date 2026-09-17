@@ -94,6 +94,23 @@ Visit `http://localhost:5173`, log in with the admin account, and start creating
 4. **Frontend → Vercel:** new project, root directory `frontend`, framework preset "Vite". Add `VITE_API_URL` pointing to your Render backend URL + `/api`.
 5. After both are live, run `node seed.js` once against your production `MONGO_URI` (locally, pointing at Atlas) to create the first admin account.
 
+## Multi-school foundation
+
+Every collection now carries a `school` reference (see `backend/models/School.js`), and every route scopes its reads/writes to the logged-in user's school via `backend/middleware/tenant.js`. This doesn't change behavior for a single school today — it just means a second school can be added later (multi-campus) without a rewrite.
+
+**If you're upgrading an existing deployment with real data in it:**
+
+```bash
+cd backend
+node migrations/001-add-school.js
+```
+
+This creates one default `School` document and backfills it onto every existing user/class/exam/routine/note/notice/attendance record that doesn't already have one. It only sets a field that's missing — it never deletes, overwrites, or touches any other data, and it's safe to run more than once. Run it once, after deploying this update and before anyone logs in.
+
+New installs don't need to run it — `seed.js` creates the default school automatically.
+
+See `backend/modules/README.md` for the convention new modules (library, transport, online exams, etc.) should follow.
+
 ## Notes on scope
 
 This covers the full core feature set end-to-end and is ready to run. A few things worth adding as you iterate (matching how you've built out your other projects):

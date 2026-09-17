@@ -1,6 +1,7 @@
 const express = require('express');
 const ExamSchedule = require('../models/ExamSchedule');
 const { protect, authorize } = require('../middleware/auth');
+const { scopeQuery, withSchool } = require('../middleware/tenant');
 
 const router = express.Router();
 
@@ -8,7 +9,7 @@ const router = express.Router();
 router.get('/', protect, async (req, res) => {
   try {
     const { className, section } = req.query;
-    const filter = {};
+    const filter = scopeQuery(req);
     if (className) filter.className = className;
     if (section) filter.section = section;
     const exams = await ExamSchedule.find(filter).populate('entries.teacher', 'name').sort({ createdAt: -1 });
@@ -20,7 +21,7 @@ router.get('/', protect, async (req, res) => {
 
 router.post('/', protect, authorize('admin', 'teacher'), async (req, res) => {
   try {
-    const exam = await ExamSchedule.create({ ...req.body, createdBy: req.user._id });
+    const exam = await ExamSchedule.create(withSchool(req, { ...req.body, createdBy: req.user._id }));
     res.status(201).json(exam);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -29,7 +30,10 @@ router.post('/', protect, authorize('admin', 'teacher'), async (req, res) => {
 
 router.put('/:id', protect, authorize('admin', 'teacher'), async (req, res) => {
   try {
-    const exam = await ExamSchedule.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updates = { ...req.body };
+    delete updates.school;
+    const exam = await ExamSchedule.findOneAndUpdate(scopeQuery(req, { _id: req.params.id }), updates, { new: true });
+    if (!exam) return res.status(404).json({ message: 'Exam schedule not found' });
     res.json(exam);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -38,7 +42,8 @@ router.put('/:id', protect, authorize('admin', 'teacher'), async (req, res) => {
 
 router.delete('/:id', protect, authorize('admin', 'teacher'), async (req, res) => {
   try {
-    await ExamSchedule.findByIdAndDelete(req.params.id);
+    const deleted = await ExamSchedule.findOneAndDelete(scopeQuery(req, { _id: req.params.id }));
+    if (!deleted) return res.status(404).json({ message: 'Exam schedule not found' });
     res.json({ message: 'Exam schedule deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });

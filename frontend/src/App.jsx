@@ -11,6 +11,8 @@ import AdminUsers from './pages/admin/Users';
 import AdminClasses from './pages/admin/Classes';
 import AdminAttendance from './pages/admin/Attendance';
 import AdminExams from './pages/admin/Exams';
+import AdminOnlineExams from './pages/admin/OnlineExams';
+import AdminFees from './pages/admin/Fees';
 import AdminRoutine from './pages/admin/Routine';
 import AdminNotes from './pages/admin/Notes';
 import AdminNotices from './pages/admin/Notices';
@@ -18,6 +20,7 @@ import AdminNotices from './pages/admin/Notices';
 import TeacherDashboard from './pages/teacher/Dashboard';
 import TeacherAttendance from './pages/teacher/TakeAttendancePage';
 import TeacherExams from './pages/teacher/Exams';
+import TeacherOnlineExams from './pages/teacher/OnlineExams';
 import TeacherRoutine from './pages/teacher/Routine';
 import TeacherNotes from './pages/teacher/Notes';
 import TeacherNotices from './pages/teacher/Notices';
@@ -25,6 +28,7 @@ import TeacherNotices from './pages/teacher/Notices';
 import StudentDashboard from './pages/student/Dashboard';
 import StudentAttendance from './pages/student/Attendance';
 import StudentExams from './pages/student/Exams';
+import StudentOnlineExams from './pages/student/OnlineExams';
 import StudentRoutine from './pages/student/Routine';
 import StudentNotes from './pages/student/Notes';
 import StudentNotices from './pages/student/Notices';
@@ -32,6 +36,8 @@ import StudentNotices from './pages/student/Notices';
 import ParentDashboard from './pages/parent/Dashboard';
 import ParentAttendance from './pages/parent/Attendance';
 import ParentExams from './pages/parent/Exams';
+import ParentOnlineExams from './pages/parent/OnlineExams';
+import ParentFees from './pages/parent/Fees';
 import ParentRoutine from './pages/parent/Routine';
 import ParentNotes from './pages/parent/Notes';
 import ParentNotices from './pages/parent/Notices';
@@ -66,6 +72,8 @@ export default function App() {
               <Route path="classes" element={<AdminClasses />} />
               <Route path="attendance" element={<AdminAttendance />} />
               <Route path="exams" element={<AdminExams />} />
+              <Route path="online-exams" element={<AdminOnlineExams />} />
+              <Route path="fees" element={<AdminFees />} />
               <Route path="routine" element={<AdminRoutine />} />
               <Route path="notes" element={<AdminNotes />} />
               <Route path="notices" element={<AdminNotices />} />
@@ -82,6 +90,7 @@ export default function App() {
               <Route index element={<TeacherDashboard />} />
               <Route path="attendance" element={<TeacherAttendance />} />
               <Route path="exams" element={<TeacherExams />} />
+              <Route path="online-exams" element={<TeacherOnlineExams />} />
               <Route path="routine" element={<TeacherRoutine />} />
               <Route path="notes" element={<TeacherNotes />} />
               <Route path="notices" element={<TeacherNotices />} />
@@ -98,6 +107,7 @@ export default function App() {
               <Route index element={<StudentDashboard />} />
               <Route path="attendance" element={<StudentAttendance />} />
               <Route path="exams" element={<StudentExams />} />
+              <Route path="online-exams" element={<StudentOnlineExams />} />
               <Route path="routine" element={<StudentRoutine />} />
               <Route path="notes" element={<StudentNotes />} />
               <Route path="notices" element={<StudentNotices />} />
@@ -114,6 +124,8 @@ export default function App() {
               <Route index element={<ParentDashboard />} />
               <Route path="attendance" element={<ParentAttendance />} />
               <Route path="exams" element={<ParentExams />} />
+              <Route path="online-exams" element={<ParentOnlineExams />} />
+              <Route path="fees" element={<ParentFees />} />
               <Route path="routine" element={<ParentRoutine />} />
               <Route path="notes" element={<ParentNotes />} />
               <Route path="notices" element={<ParentNotices />} />

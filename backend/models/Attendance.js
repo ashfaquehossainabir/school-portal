@@ -4,6 +4,7 @@ const STATUS_VALUES = ['present', 'absent', 'late', 'excused', 'half-day', 'leav
 
 const attendanceSchema = new mongoose.Schema(
   {
+    school: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
     student: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     className: { type: String, required: true },
     section: { type: String, required: true },
