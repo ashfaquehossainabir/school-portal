@@ -60,7 +60,6 @@ router.post('/create-user', protect, authorize('admin'), async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({
-      school: req.user.school, // new accounts always belong to the creating admin's school
       name,
       email: email.toLowerCase(),
       password: hashed,

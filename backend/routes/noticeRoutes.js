@@ -1,13 +1,12 @@
 const express = require('express');
 const Notice = require('../models/Notice');
 const { protect, authorize } = require('../middleware/auth');
-const { scopeQuery, withSchool } = require('../middleware/tenant');
 
 const router = express.Router();
 
 router.get('/', protect, async (req, res) => {
   try {
-    const notices = await Notice.find(scopeQuery(req)).populate('postedBy', 'name').sort({ createdAt: -1 });
+    const notices = await Notice.find().populate('postedBy', 'name').sort({ createdAt: -1 });
     res.json(notices);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -16,7 +15,7 @@ router.get('/', protect, async (req, res) => {
 
 router.post('/', protect, authorize('admin', 'teacher'), async (req, res) => {
   try {
-    const notice = await Notice.create(withSchool(req, { ...req.body, postedBy: req.user._id }));
+    const notice = await Notice.create({ ...req.body, postedBy: req.user._id });
     res.status(201).json(notice);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -25,10 +24,7 @@ router.post('/', protect, authorize('admin', 'teacher'), async (req, res) => {
 
 router.put('/:id', protect, authorize('admin', 'teacher'), async (req, res) => {
   try {
-    const updates = { ...req.body };
-    delete updates.school;
-    const notice = await Notice.findOneAndUpdate(scopeQuery(req, { _id: req.params.id }), updates, { new: true });
-    if (!notice) return res.status(404).json({ message: 'Notice not found' });
+    const notice = await Notice.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(notice);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -37,8 +33,7 @@ router.put('/:id', protect, authorize('admin', 'teacher'), async (req, res) => {
 
 router.delete('/:id', protect, authorize('admin', 'teacher'), async (req, res) => {
   try {
-    const deleted = await Notice.findOneAndDelete(scopeQuery(req, { _id: req.params.id }));
-    if (!deleted) return res.status(404).json({ message: 'Notice not found' });
+    await Notice.findByIdAndDelete(req.params.id);
     res.json({ message: 'Notice deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });

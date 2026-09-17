@@ -2,7 +2,6 @@ const express = require('express');
 const Attendance = require('../models/Attendance');
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
-const { scopeQuery } = require('../middleware/tenant');
 const { parseDateOnly, monthStartUTC, monthEndUTC, addDaysUTC } = require('../utils/dateOnly');
 
 const router = express.Router();
@@ -26,7 +25,7 @@ router.get('/report', protect, authorize('admin'), async (req, res) => {
       return res.status(400).json({ message: 'month and year required' });
     }
 
-    const studentFilter = scopeQuery(req, { role: 'student' });
+    const studentFilter = { role: 'student' };
     if (className) studentFilter.className = className;
     if (section) studentFilter.section = section;
 
@@ -36,7 +35,6 @@ router.get('/report', protect, authorize('admin'), async (req, res) => {
 
     const studentIds = students.map((s) => s._id);
     const records = await Attendance.find({
-      school: req.user.school,
       student: { $in: studentIds },
       date: { $gte: monthStartUTC(year, month), $lt: monthEndUTC(year, month) },
     }).select('student status');
@@ -86,13 +84,11 @@ router.get('/class', protect, authorize('admin', 'teacher'), async (req, res) =>
     const day = parseDateOnly(date);
     const nextDay = addDaysUTC(day, 1);
 
-    const records = await Attendance.find(
-      scopeQuery(req, {
-        className,
-        section,
-        date: { $gte: day, $lt: nextDay },
-      })
-    ).populate('student', 'name roll');
+    const records = await Attendance.find({
+      className,
+      section,
+      date: { $gte: day, $lt: nextDay },
+    }).populate('student', 'name roll');
 
     res.json(records);
   } catch (err) {
@@ -111,21 +107,11 @@ router.post('/mark', protect, authorize('admin', 'teacher'), async (req, res) =>
     }
     const day = parseDateOnly(date);
 
-    // Only mark attendance for students who actually belong to this school —
-    // guards against a stray/forged studentId reaching across tenants.
-    const validStudentIds = new Set(
-      (await User.find(scopeQuery(req, { _id: { $in: records.map((r) => r.studentId) }, role: 'student' })).select('_id')).map((s) =>
-        s._id.toString()
-      )
-    );
-    const validRecords = records.filter((r) => validStudentIds.has(r.studentId));
-
     const results = await Promise.all(
-      validRecords.map((r) =>
+      records.map((r) =>
         Attendance.findOneAndUpdate(
           { student: r.studentId, date: day },
           {
-            school: req.user.school,
             student: r.studentId,
             className,
             section,
@@ -159,7 +145,7 @@ router.get('/student/:studentId', protect, async (req, res) => {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
-    const filter = { student: studentId, school: req.user.school };
+    const filter = { student: studentId };
     if (month && year) {
       filter.date = { $gte: monthStartUTC(year, month), $lt: monthEndUTC(year, month) };
     }
@@ -207,20 +193,14 @@ router.post('/off-day', protect, authorize('admin', 'teacher'), async (req, res)
       return res.status(400).json({ message: 'Date range too large (max 62 days)' });
     }
 
-    // Same tenant guard as /mark: only touch students who belong to this school.
-    const validStudentIds = (
-      await User.find(scopeQuery(req, { _id: { $in: studentIds }, role: 'student' })).select('_id')
-    ).map((s) => s._id.toString());
-
     const ops = [];
     dates.forEach((d) => {
       const day = parseDateOnly(d);
-      validStudentIds.forEach((studentId) => {
+      studentIds.forEach((studentId) => {
         ops.push(
           Attendance.findOneAndUpdate(
             { student: studentId, date: day },
             {
-              school: req.user.school,
               student: studentId,
               className,
               section,
@@ -239,7 +219,7 @@ router.post('/off-day', protect, authorize('admin', 'teacher'), async (req, res)
     res.json({
       message: 'Off day set',
       count: results.length,
-      studentCount: validStudentIds.length,
+      studentCount: studentIds.length,
       dayCount: dates.length,
     });
   } catch (err) {

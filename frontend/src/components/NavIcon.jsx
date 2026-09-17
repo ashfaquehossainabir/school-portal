@@ -46,21 +46,6 @@ const PATHS = {
       <path d="M9 12.5h6M9 15.8h6M9 9.3h3" />
     </>
   ),
-  onlineExam: (
-    <>
-      <rect x="3" y="4.5" width="18" height="12" rx="1.8" />
-      <path d="M8.5 20.5h7M12 16.5v4" />
-      <path d="M7.5 10.3l2.3 2.3 4.7-4.7" />
-    </>
-  ),
-  fees: (
-    <>
-      <rect x="3" y="6" width="18" height="12" rx="2" />
-      <path d="M3 10h18" />
-      <circle cx="7.5" cy="14.3" r="1.2" />
-      <path d="M13 14.3h5" />
-    </>
-  ),
   routine: (
     <>
       <rect x="3.5" y="4.5" width="17" height="16" rx="2.4" />

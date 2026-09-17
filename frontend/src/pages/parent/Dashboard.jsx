@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import ChildSelector from '../../components/ChildSelector';
 import AttendanceView from '../../components/AttendanceView';
-import FeeStatusWidget from '../../components/FeeStatusWidget';
 
 export default function ParentDashboard() {
   const [child, setChild] = useState(null);
@@ -15,7 +14,6 @@ export default function ParentDashboard() {
             Viewing <strong>{child.name}</strong>'s attendance summary
           </p>
           <AttendanceView studentId={child._id} />
-          <FeeStatusWidget studentId={child._id} />
         </>
       )}
     </div>

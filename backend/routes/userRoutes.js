@@ -2,7 +2,6 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
-const { scopeQuery, withSchool } = require('../middleware/tenant');
 
 const router = express.Router();
 
@@ -10,7 +9,7 @@ const router = express.Router();
 router.get('/', protect, authorize('admin', 'teacher'), async (req, res) => {
   try {
     const { role, className, section } = req.query;
-    const filter = scopeQuery(req);
+    const filter = {};
     if (role) filter.role = role;
     if (className) filter.className = className;
     if (section) filter.section = section;
@@ -25,7 +24,7 @@ router.get('/', protect, authorize('admin', 'teacher'), async (req, res) => {
 // admin directory modal) can show meaningful names instead of raw ObjectIds
 router.get('/:id', protect, async (req, res) => {
   try {
-    const user = await User.findOne(scopeQuery(req, { _id: req.params.id }))
+    const user = await User.findById(req.params.id)
       .select('-password')
       .populate('parent', 'name email phone')
       .populate('children', 'name email studentId className section roll');
@@ -41,8 +40,7 @@ router.put('/:id', protect, authorize('admin'), async (req, res) => {
   try {
     const updates = { ...req.body };
     delete updates.password; // password changes go through change-password route
-    delete updates.school; // school membership is not editable via this route
-    const user = await User.findOneAndUpdate(scopeQuery(req, { _id: req.params.id }), updates, {
+    const user = await User.findByIdAndUpdate(req.params.id, updates, {
       new: true,
       runValidators: true,
     }).select('-password');
@@ -60,7 +58,7 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
       return res.status(400).json({ message: 'You cannot delete your own account' });
     }
 
-    const user = await User.findOne(scopeQuery(req, { _id: req.params.id }));
+    const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     // Clean up parent-child links so no orphaned references are left behind
@@ -82,8 +80,8 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
 router.post('/link-child', protect, authorize('admin'), async (req, res) => {
   try {
     const { parentId, studentId } = req.body;
-    const parent = await User.findOne(scopeQuery(req, { _id: parentId }));
-    const student = await User.findOne(scopeQuery(req, { _id: studentId }));
+    const parent = await User.findById(parentId);
+    const student = await User.findById(studentId);
     if (!parent || parent.role !== 'parent') return res.status(400).json({ message: 'Invalid parent' });
     if (!student || student.role !== 'student') return res.status(400).json({ message: 'Invalid student' });
 
@@ -118,7 +116,7 @@ router.put('/:id/reset-password', protect, authorize('admin'), async (req, res) 
     if (!newPassword || newPassword.length < 4) {
       return res.status(400).json({ message: 'Password must be at least 4 characters' });
     }
-    const user = await User.findOne(scopeQuery(req, { _id: req.params.id }));
+    const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
@@ -132,8 +130,8 @@ router.put('/:id/reset-password', protect, authorize('admin'), async (req, res) 
 router.patch('/:id/status', protect, authorize('admin'), async (req, res) => {
   try {
     const { isActive } = req.body;
-    const user = await User.findOneAndUpdate(
-      scopeQuery(req, { _id: req.params.id }),
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
       { isActive: !!isActive },
       { new: true }
     ).select('-password');
@@ -151,7 +149,7 @@ router.post('/assign-subject', protect, authorize('admin'), async (req, res) => 
     if (!teacherId || !className || !section || !subject) {
       return res.status(400).json({ message: 'teacherId, className, section, subject are all required' });
     }
-    const teacher = await User.findOne(scopeQuery(req, { _id: teacherId }));
+    const teacher = await User.findById(teacherId);
     if (!teacher || teacher.role !== 'teacher') {
       return res.status(400).json({ message: 'Invalid teacher' });
     }
@@ -173,7 +171,7 @@ router.post('/assign-subject', protect, authorize('admin'), async (req, res) => 
 router.post('/unassign-subject', protect, authorize('admin'), async (req, res) => {
   try {
     const { teacherId, className, section, subject } = req.body;
-    const teacher = await User.findOne(scopeQuery(req, { _id: teacherId }));
+    const teacher = await User.findById(teacherId);
     if (!teacher || teacher.role !== 'teacher') {
       return res.status(400).json({ message: 'Invalid teacher' });
     }
@@ -192,8 +190,8 @@ router.post('/unassign-subject', protect, authorize('admin'), async (req, res) =
 router.post('/unlink-child', protect, authorize('admin'), async (req, res) => {
   try {
     const { parentId, studentId } = req.body;
-    const parent = await User.findOne(scopeQuery(req, { _id: parentId }));
-    const student = await User.findOne(scopeQuery(req, { _id: studentId }));
+    const parent = await User.findById(parentId);
+    const student = await User.findById(studentId);
     if (!parent || !student) return res.status(404).json({ message: 'Parent or student not found' });
 
     parent.children = parent.children.filter((c) => c.toString() !== studentId);

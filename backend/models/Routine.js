@@ -25,7 +25,6 @@ const daySchema = new mongoose.Schema(
 
 const routineSchema = new mongoose.Schema(
   {
-    school: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
     className: { type: String, required: true },
     section: { type: String, required: true },
     days: [daySchema],
@@ -34,6 +33,6 @@ const routineSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-routineSchema.index({ school: 1, className: 1, section: 1 }, { unique: true });
+routineSchema.index({ className: 1, section: 1 }, { unique: true });
 
 module.exports = mongoose.model('Routine', routineSchema);

@@ -3,8 +3,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
-require('./models/School'); // registered up front so .populate('school') works anywhere without import-order issues
-
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const classRoutes = require('./routes/classRoutes');
@@ -13,8 +11,6 @@ const routineRoutes = require('./routes/routineRoutes');
 const noteRoutes = require('./routes/noteRoutes');
 const noticeRoutes = require('./routes/noticeRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
-const onlineExamRoutes = require('./routes/onlineExamRoutes');
-const feeRoutes = require('./routes/feeRoutes');
 
 const app = express();
 
@@ -36,8 +32,6 @@ app.use('/api/routines', routineRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/notices', noticeRoutes);
 app.use('/api/attendance', attendanceRoutes);
-app.use('/api/online-exams', onlineExamRoutes);
-app.use('/api/fees', feeRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {

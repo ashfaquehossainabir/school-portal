@@ -14,7 +14,6 @@ const examEntrySchema = new mongoose.Schema(
 
 const examScheduleSchema = new mongoose.Schema(
   {
-    school: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
     title: { type: String, required: true }, // "Mid-Term Examination 2026"
     className: { type: String, required: true },
     section: { type: String, required: true },
