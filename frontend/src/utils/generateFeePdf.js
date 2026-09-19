@@ -1,14 +1,19 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { CURRENCY, FEE_TYPE_LABELS, PAYMENT_METHOD_LABELS, formatDate } from './feeTypes';
+import { FEE_TYPE_LABELS, PAYMENT_METHOD_LABELS, formatDate } from './feeTypes';
 
 const SCHOOL_NAME = 'EduPortal School';
 const ACCENT = [31, 111, 92]; // matches --accent from theme.css
 const MUTED = [90, 96, 114];
 const MARGIN = 14;
 
+// jsPDF's built-in fonts (Helvetica/Times/Courier) only cover the WinAnsi
+// character set — the Bengali Taka sign (৳) isn't in it, so its glyph width
+// can't be measured correctly. That silently threw off every autoTable
+// column-width calculation, pushing amounts outside their cells. "BDT" is
+// plain ASCII and renders/measures correctly everywhere.
 function money(n) {
-  return `${CURRENCY}${(Number(n) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `BDT ${(Number(n) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function pageWidth(doc) {
@@ -149,8 +154,8 @@ export function generateInvoicePdf(invoice, student) {
     headStyles: { fillColor: ACCENT, textColor: 255, fontSize: 10 },
     bodyStyles: { fontSize: 10, overflow: 'linebreak' },
     columnStyles: {
-      0: { cellWidth: 32 },
-      2: { halign: 'right', cellWidth: 32 },
+      0: { cellWidth: 30 },
+      2: { halign: 'right', cellWidth: 38 },
     },
     margin: tableMargin,
   });
@@ -179,8 +184,8 @@ export function generateInvoicePdf(invoice, student) {
     theme: 'plain',
     styles: { fontSize: 10.5, overflow: 'linebreak' },
     columnStyles: {
-      0: { cellWidth: contentWidth(doc) - 45, fontStyle: 'bold' },
-      1: { halign: 'right', cellWidth: 45 },
+      0: { cellWidth: contentWidth(doc) - 50, fontStyle: 'bold' },
+      1: { halign: 'right', cellWidth: 50 },
     },
     margin: tableMargin,
     didParseCell: (data) => {
@@ -289,8 +294,8 @@ export function generateReceiptPdf(invoice, payment, student) {
     theme: 'plain',
     styles: { fontSize: 10.5, overflow: 'linebreak' },
     columnStyles: {
-      0: { cellWidth: contentWidth(doc) - 45, textColor: MUTED },
-      1: { halign: 'right', cellWidth: 45 },
+      0: { cellWidth: contentWidth(doc) - 50, textColor: MUTED },
+      1: { halign: 'right', cellWidth: 50 },
     },
     margin: tableMargin,
     didParseCell: (data) => {
