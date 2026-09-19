@@ -5,62 +5,110 @@ import { CURRENCY, FEE_TYPE_LABELS, PAYMENT_METHOD_LABELS, formatDate } from './
 const SCHOOL_NAME = 'EduPortal School';
 const ACCENT = [31, 111, 92]; // matches --accent from theme.css
 const MUTED = [90, 96, 114];
+const MARGIN = 14;
 
 function money(n) {
   return `${CURRENCY}${(Number(n) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+function pageWidth(doc) {
+  return doc.internal.pageSize.getWidth();
+}
+
+function contentWidth(doc) {
+  return pageWidth(doc) - MARGIN * 2;
+}
+
+// Wraps `text` to fit within `maxWidth` and prints it starting at (x, y),
+// returning the y position just below the last printed line so callers can
+// keep stacking content without guessing line counts up front.
+function printWrapped(doc, text, x, y, maxWidth, lineHeight = 5.2) {
+  const lines = doc.splitTextToSize(String(text ?? '—'), maxWidth);
+  doc.text(lines, x, y);
+  return y + lines.length * lineHeight;
+}
+
 function drawLetterhead(doc, subtitle) {
+  const pw = pageWidth(doc);
   doc.setFillColor(...ACCENT);
-  doc.rect(0, 0, 210, 26, 'F');
+  doc.rect(0, 0, pw, 26, 'F');
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(17);
-  doc.text(SCHOOL_NAME, 14, 16);
+  doc.text(SCHOOL_NAME, MARGIN, 16, { maxWidth: pw - MARGIN * 2 });
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10.5);
-  doc.text(subtitle, 14, 22);
+  doc.text(subtitle, MARGIN, 22);
   doc.setTextColor(0, 0, 0);
 }
 
-function studentBlock(doc, student, y) {
-  doc.setFontSize(10);
-  doc.setTextColor(...MUTED);
-  doc.text('BILLED TO', 14, y);
+// A large, wrapped heading (the invoice title) that spans the full content
+// width — this is the one piece of free text most likely to be long, so it
+// gets its own line(s) rather than being squeezed into a label/value pair.
+function printHeading(doc, text, y) {
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
   doc.setTextColor(20, 20, 20);
+  const endY = printWrapped(doc, text, MARGIN, y, contentWidth(doc), 6.5);
+  doc.setFont('helvetica', 'normal');
+  return endY;
+}
+
+// Two-column info row: student details on the left, short meta facts
+// (invoice no., due date, status, ...) on the right. Each column gets its
+// own bounded width and every line is wrapped, so long values fall onto a
+// second line instead of running off the page.
+function printInfoRow(doc, { student, metaRows }, y) {
+  const cw = contentWidth(doc);
+  const leftX = MARGIN;
+  const leftWidth = cw * 0.56;
+  const rightX = MARGIN + cw * 0.6;
+  const rightWidth = cw * 0.4;
+
+  let leftY = y;
+  doc.setFontSize(9.5);
+  doc.setTextColor(...MUTED);
+  doc.text('BILLED TO', leftX, leftY);
+  leftY += 6;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
-  doc.text(student?.name || '—', 14, y + 6);
+  doc.setTextColor(20, 20, 20);
+  leftY = printWrapped(doc, student?.name || '—', leftX, leftY, leftWidth, 5.5);
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
+  doc.setFontSize(9.5);
+  doc.setTextColor(60, 64, 76);
   const line2 = [
     student?.studentId ? `ID: ${student.studentId}` : null,
     student?.className ? `${student.className}${student?.section ? ` - ${student.section}` : ''}` : null,
   ]
     .filter(Boolean)
-    .join('  •  ');
-  if (line2) doc.text(line2, 14, y + 12);
-  return y + 12;
-}
+    .join('   ');
+  if (line2) leftY = printWrapped(doc, line2, leftX, leftY, leftWidth, 5);
 
-function metaBlock(doc, rows, y) {
-  const startX = 140;
-  doc.setFontSize(10);
-  rows.forEach(([label, value], i) => {
+  let rightY = y;
+  doc.setFontSize(9.5);
+  metaRows.forEach(([label, value]) => {
     doc.setTextColor(...MUTED);
-    doc.text(label, startX, y + i * 6);
+    doc.text(label, rightX, rightY);
+    rightY += 4.6;
     doc.setTextColor(20, 20, 20);
-    doc.text(String(value ?? '—'), startX + 32, y + i * 6);
+    doc.setFont('helvetica', 'bold');
+    rightY = printWrapped(doc, value ?? '—', rightX, rightY, rightWidth, 5);
+    doc.setFont('helvetica', 'normal');
+    rightY += 2.2;
   });
-  return y + rows.length * 6;
+
+  return Math.max(leftY, rightY) + 4;
 }
 
 function footer(doc) {
   const pageHeight = doc.internal.pageSize.getHeight();
   doc.setFontSize(8.5);
   doc.setTextColor(...MUTED);
-  doc.text('This is a system-generated document from EduPortal.', 14, pageHeight - 12);
+  doc.text('This is a system-generated document from EduPortal.', MARGIN, pageHeight - 12);
 }
+
+const tableMargin = { left: MARGIN, right: MARGIN };
 
 /**
  * Full fee invoice: every line item, discount, total, and (if any) the
@@ -70,21 +118,22 @@ export function generateInvoicePdf(invoice, student) {
   const doc = new jsPDF();
   drawLetterhead(doc, 'Fee Invoice');
 
-  let y = 40;
-  studentBlock(doc, student || invoice.student, y);
-  metaBlock(
+  let y = 38;
+  y = printHeading(doc, invoice.title, y);
+  y += 4;
+  y = printInfoRow(
     doc,
-    [
-      ['Invoice No.', invoice.invoiceNo],
-      ['Invoice Title', invoice.title],
-      ['Term', invoice.term || '—'],
-      ['Due Date', formatDate(invoice.dueDate)],
-      ['Status', invoice.status?.toUpperCase()],
-    ],
+    {
+      student: student || invoice.student,
+      metaRows: [
+        ['Invoice No.', invoice.invoiceNo],
+        ['Term', invoice.term || '—'],
+        ['Due Date', formatDate(invoice.dueDate)],
+        ['Status', invoice.status?.toUpperCase()],
+      ],
+    },
     y
   );
-
-  y += 26;
 
   const itemRows = invoice.items.map((item) => [
     FEE_TYPE_LABELS[item.type] || item.type,
@@ -98,9 +147,12 @@ export function generateInvoicePdf(invoice, student) {
     body: itemRows,
     theme: 'grid',
     headStyles: { fillColor: ACCENT, textColor: 255, fontSize: 10 },
-    bodyStyles: { fontSize: 10 },
-    columnStyles: { 2: { halign: 'right', cellWidth: 35 } },
-    margin: { left: 14, right: 14 },
+    bodyStyles: { fontSize: 10, overflow: 'linebreak' },
+    columnStyles: {
+      0: { cellWidth: 32 },
+      2: { halign: 'right', cellWidth: 32 },
+    },
+    margin: tableMargin,
   });
 
   y = doc.lastAutoTable.finalY + 6;
@@ -125,9 +177,12 @@ export function generateInvoicePdf(invoice, student) {
     startY: y,
     body: summaryRows,
     theme: 'plain',
-    styles: { fontSize: 10.5 },
-    columnStyles: { 0: { cellWidth: 140, fontStyle: 'bold' }, 1: { halign: 'right' } },
-    margin: { left: 14, right: 14 },
+    styles: { fontSize: 10.5, overflow: 'linebreak' },
+    columnStyles: {
+      0: { cellWidth: contentWidth(doc) - 45, fontStyle: 'bold' },
+      1: { halign: 'right', cellWidth: 45 },
+    },
+    margin: tableMargin,
     didParseCell: (data) => {
       const label = String(data.row.raw[0]);
       if (label === 'Total' || label === 'Balance Due') {
@@ -141,9 +196,15 @@ export function generateInvoicePdf(invoice, student) {
   y = doc.lastAutoTable.finalY + 8;
 
   if (invoice.payments?.length > 0) {
+    if (y > doc.internal.pageSize.getHeight() - 60) {
+      doc.addPage();
+      y = 20;
+    }
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('Payment History', 14, y);
+    doc.setTextColor(20, 20, 20);
+    doc.text('Payment History', MARGIN, y);
+    doc.setFont('helvetica', 'normal');
     y += 4;
     autoTable(doc, {
       startY: y,
@@ -157,17 +218,17 @@ export function generateInvoicePdf(invoice, student) {
       ]),
       theme: 'striped',
       headStyles: { fillColor: [230, 233, 240], textColor: 30, fontSize: 9 },
-      bodyStyles: { fontSize: 9 },
+      bodyStyles: { fontSize: 9, overflow: 'linebreak' },
       columnStyles: { 4: { halign: 'right' } },
-      margin: { left: 14, right: 14 },
+      margin: tableMargin,
     });
+    y = doc.lastAutoTable.finalY + 8;
   }
 
   if (invoice.notes) {
-    const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : y + 10;
     doc.setFontSize(9.5);
     doc.setTextColor(...MUTED);
-    doc.text(`Note: ${invoice.notes}`, 14, finalY, { maxWidth: 180 });
+    printWrapped(doc, `Note: ${invoice.notes}`, MARGIN, y, contentWidth(doc), 4.8);
   }
 
   footer(doc);
@@ -182,55 +243,70 @@ export function generateReceiptPdf(invoice, payment, student) {
   const doc = new jsPDF();
   drawLetterhead(doc, 'Payment Receipt');
 
-  let y = 40;
-  studentBlock(doc, student || invoice.student, y);
-  metaBlock(
+  let y = 38;
+  y = printHeading(doc, invoice.title, y);
+  y += 4;
+  y = printInfoRow(
     doc,
-    [
-      ['Receipt No.', payment.receiptNo],
-      ['Invoice No.', invoice.invoiceNo],
-      ['Date', formatDate(payment.date)],
-      ['Method', PAYMENT_METHOD_LABELS[payment.method] || payment.method],
-    ],
+    {
+      student: student || invoice.student,
+      metaRows: [
+        ['Receipt No.', payment.receiptNo],
+        ['Invoice No.', invoice.invoiceNo],
+        ['Date', formatDate(payment.date)],
+        ['Method', PAYMENT_METHOD_LABELS[payment.method] || payment.method],
+      ],
+    },
     y
   );
 
-  y += 30;
-
   autoTable(doc, {
     startY: y,
-    head: [['Paid Against', 'Reference', 'Amount Received']],
-    body: [[invoice.title, payment.reference || '—', money(payment.amount)]],
+    head: [['Reference', 'Amount Received']],
+    body: [[payment.reference || '—', money(payment.amount)]],
     theme: 'grid',
     headStyles: { fillColor: ACCENT, textColor: 255, fontSize: 10 },
-    bodyStyles: { fontSize: 11 },
-    columnStyles: { 2: { halign: 'right', fontStyle: 'bold' } },
-    margin: { left: 14, right: 14 },
+    bodyStyles: { fontSize: 11, overflow: 'linebreak' },
+    columnStyles: { 1: { halign: 'right', fontStyle: 'bold', cellWidth: 50 } },
+    margin: tableMargin,
   });
 
-  y = doc.lastAutoTable.finalY + 8;
+  y = doc.lastAutoTable.finalY + 10;
 
   const itemsTotal = invoice.items.reduce((s, i) => s + i.amount, 0);
   const total = Math.max(itemsTotal - (invoice.discount?.amount || 0), 0);
   const paidToDate = (invoice.payments || []).reduce((s, p) => s + p.amount, 0);
   const balance = Math.max(total - paidToDate, 0);
 
-  doc.setFontSize(10.5);
-  doc.setTextColor(...MUTED);
-  doc.text('Invoice Total', 14, y);
-  doc.text('Paid to Date', 14, y + 6);
-  doc.text('Remaining Balance', 14, y + 12);
-  doc.setTextColor(20, 20, 20);
-  doc.text(money(total), 70, y);
-  doc.text(money(paidToDate), 70, y + 6);
-  doc.setFont('helvetica', 'bold');
-  doc.text(money(balance), 70, y + 12);
-  doc.setFont('helvetica', 'normal');
+  const rows = [
+    ['Invoice Total', money(total)],
+    ['Paid to Date', money(paidToDate)],
+    ['Remaining Balance', money(balance)],
+  ];
+  autoTable(doc, {
+    startY: y,
+    body: rows,
+    theme: 'plain',
+    styles: { fontSize: 10.5, overflow: 'linebreak' },
+    columnStyles: {
+      0: { cellWidth: contentWidth(doc) - 45, textColor: MUTED },
+      1: { halign: 'right', cellWidth: 45 },
+    },
+    margin: tableMargin,
+    didParseCell: (data) => {
+      if (String(data.row.raw[0]) === 'Remaining Balance') {
+        data.cell.styles.fontStyle = 'bold';
+        if (balance > 0) data.cell.styles.textColor = [200, 64, 47];
+      }
+    },
+  });
+
+  y = doc.lastAutoTable.finalY + 8;
 
   if (payment.note) {
     doc.setFontSize(9.5);
     doc.setTextColor(...MUTED);
-    doc.text(`Note: ${payment.note}`, 14, y + 24, { maxWidth: 180 });
+    printWrapped(doc, `Note: ${payment.note}`, MARGIN, y, contentWidth(doc), 4.8);
   }
 
   footer(doc);
