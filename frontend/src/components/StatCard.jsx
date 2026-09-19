@@ -1,9 +1,10 @@
-export default function StatCard({ label, value, color = 'var(--accent)', icon, onClick }) {
+export default function StatCard({ label, value, color = 'var(--accent)', icon, onClick, title }) {
   return (
     <div
       className="card stat-card"
       style={{ display: 'flex', flexDirection: 'column', gap: 14, cursor: onClick ? 'pointer' : 'default', borderTop: `3px solid ${color}` }}
       onClick={onClick}
+      title={title}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); } : undefined}

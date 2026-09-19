@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import StatCard from './StatCard';
-import { formatMoney, formatDate } from '../utils/feeTypes';
+import { formatMoney, formatMoneyCompact, formatCompactNumber, formatDate } from '../utils/feeTypes';
 
 // A compact "fees at a glance" block for dashboards — full detail, invoice
 // downloads and payment history live on the dedicated Fees page.
@@ -35,17 +35,18 @@ export default function FeeSummaryWidget({ studentId, linkTo }) {
         )}
       </div>
       <div className="grid grid-cols-4 fsw-grid">
-        <StatCard label="Total Billed" value={formatMoney(stats.totalBilled)} icon="🧾" />
-        <StatCard label="Total Paid" value={formatMoney(stats.totalPaid)} color="var(--success)" icon="✅" />
+        <StatCard label="Total Billed" value={formatMoneyCompact(stats.totalBilled)} title={formatMoney(stats.totalBilled)} icon="🧾" />
+        <StatCard label="Total Paid" value={formatMoneyCompact(stats.totalPaid)} title={formatMoney(stats.totalPaid)} color="var(--success)" icon="✅" />
         <StatCard
           label="Balance Due"
-          value={formatMoney(stats.totalDue)}
+          value={formatMoneyCompact(stats.totalDue)}
+          title={formatMoney(stats.totalDue)}
           color={stats.totalDue > 0 ? 'var(--danger)' : 'var(--success)'}
           icon="⏳"
         />
         <StatCard
           label={stats.nextDueDate ? 'Next Due Date' : 'Overdue'}
-          value={stats.nextDueDate ? formatDate(stats.nextDueDate) : stats.overdueCount}
+          value={stats.nextDueDate ? formatDate(stats.nextDueDate) : formatCompactNumber(stats.overdueCount)}
           color={stats.overdueCount > 0 ? 'var(--danger)' : 'var(--accent)'}
           icon="📅"
         />

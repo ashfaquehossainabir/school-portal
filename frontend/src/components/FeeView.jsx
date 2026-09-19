@@ -8,6 +8,8 @@ import {
   STATUS_LABELS,
   STATUS_COLORS,
   formatMoney,
+  formatMoneyCompact,
+  formatCompactNumber,
   formatDate,
 } from '../utils/feeTypes';
 
@@ -33,17 +35,18 @@ export default function FeeView({ studentId, student }) {
   return (
     <div className="fv-root">
       <div className="fv-stats-grid">
-        <StatCard label="Total Billed" value={formatMoney(stats.totalBilled)} icon="🧾" />
-        <StatCard label="Total Paid" value={formatMoney(stats.totalPaid)} color="var(--success)" icon="✅" />
+        <StatCard label="Total Billed" value={formatMoneyCompact(stats.totalBilled)} title={formatMoney(stats.totalBilled)} icon="🧾" />
+        <StatCard label="Total Paid" value={formatMoneyCompact(stats.totalPaid)} title={formatMoney(stats.totalPaid)} color="var(--success)" icon="✅" />
         <StatCard
           label="Balance Due"
-          value={formatMoney(stats.totalDue)}
+          value={formatMoneyCompact(stats.totalDue)}
+          title={formatMoney(stats.totalDue)}
           color={stats.totalDue > 0 ? 'var(--danger)' : 'var(--success)'}
           icon="⏳"
         />
         <StatCard
           label={stats.nextDueDate ? 'Next Due Date' : 'Overdue Invoices'}
-          value={stats.nextDueDate ? formatDate(stats.nextDueDate) : stats.overdueCount}
+          value={stats.nextDueDate ? formatDate(stats.nextDueDate) : formatCompactNumber(stats.overdueCount)}
           color={stats.overdueCount > 0 ? 'var(--danger)' : 'var(--accent)'}
           icon="📅"
         />

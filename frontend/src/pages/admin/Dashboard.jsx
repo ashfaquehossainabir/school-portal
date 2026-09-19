@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import StatCard from '../../components/StatCard';
-import { formatMoney } from '../../utils/feeTypes';
+import { formatMoney, formatMoneyCompact, formatCompactNumber } from '../../utils/feeTypes';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -30,18 +30,18 @@ export default function AdminDashboard() {
     <div>
       <h2 style={{ marginTop: 0 }}>School Overview</h2>
       <div className="grid grid-cols-4">
-        <StatCard label="Students" value={counts.students} icon="🎓" onClick={() => navigate('/admin/directory')} />
-        <StatCard label="Teachers" value={counts.teachers} icon="🧑‍🏫" onClick={() => navigate('/admin/directory')} />
-        <StatCard label="Parents" value={counts.parents} icon="👪" onClick={() => navigate('/admin/directory')} />
-        <StatCard label="Classes" value={counts.classes} icon="🏫" onClick={() => navigate('/admin/classes')} />
+        <StatCard label="Students" value={formatCompactNumber(counts.students)} icon="🎓" onClick={() => navigate('/admin/directory')} />
+        <StatCard label="Teachers" value={formatCompactNumber(counts.teachers)} icon="🧑‍🏫" onClick={() => navigate('/admin/directory')} />
+        <StatCard label="Parents" value={formatCompactNumber(counts.parents)} icon="👪" onClick={() => navigate('/admin/directory')} />
+        <StatCard label="Classes" value={formatCompactNumber(counts.classes)} icon="🏫" onClick={() => navigate('/admin/classes')} />
       </div>
 
       {feeSummary && (
         <div className="grid grid-cols-4" style={{ marginTop: 18 }}>
-          <StatCard label="Fees Collected" value={formatMoney(feeSummary.totalCollected)} color="var(--success)" icon="✅" onClick={() => navigate('/admin/fees')} />
-          <StatCard label="Fees Outstanding" value={formatMoney(feeSummary.totalDue)} color="var(--warning)" icon="⏳" onClick={() => navigate('/admin/fees')} />
-          <StatCard label="Overdue Invoices" value={feeSummary.overdueCount} color="var(--danger)" icon="⚠️" onClick={() => navigate('/admin/fees')} />
-          <StatCard label="Total Invoices" value={feeSummary.invoiceCount} icon="🧾" onClick={() => navigate('/admin/fees')} />
+          <StatCard label="Fees Collected" value={formatMoneyCompact(feeSummary.totalCollected)} title={formatMoney(feeSummary.totalCollected)} color="var(--success)" icon="✅" onClick={() => navigate('/admin/fees')} />
+          <StatCard label="Fees Outstanding" value={formatMoneyCompact(feeSummary.totalDue)} title={formatMoney(feeSummary.totalDue)} color="var(--warning)" icon="⏳" onClick={() => navigate('/admin/fees')} />
+          <StatCard label="Overdue Invoices" value={formatCompactNumber(feeSummary.overdueCount)} color="var(--danger)" icon="⚠️" onClick={() => navigate('/admin/fees')} />
+          <StatCard label="Total Invoices" value={formatCompactNumber(feeSummary.invoiceCount)} icon="🧾" onClick={() => navigate('/admin/fees')} />
         </div>
       )}
 

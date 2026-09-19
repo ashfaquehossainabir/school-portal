@@ -13,6 +13,8 @@ import {
   STATUS_LABELS,
   STATUS_COLORS,
   formatMoney,
+  formatMoneyCompact,
+  formatCompactNumber,
   formatDate,
 } from '../utils/feeTypes';
 
@@ -271,10 +273,10 @@ export default function FeeManager() {
 
       {summary && (
         <div className="grid grid-cols-4" style={{ marginBottom: 20 }}>
-          <StatCard label="Total Billed" value={formatMoney(summary.totalBilled)} icon="🧾" />
-          <StatCard label="Total Collected" value={formatMoney(summary.totalCollected)} color="var(--success)" icon="✅" />
-          <StatCard label="Total Due" value={formatMoney(summary.totalDue)} color="var(--warning)" icon="⏳" />
-          <StatCard label="Overdue Invoices" value={summary.overdueCount} color="var(--danger)" icon="⚠️" />
+          <StatCard label="Total Billed" value={formatMoneyCompact(summary.totalBilled)} title={formatMoney(summary.totalBilled)} icon="🧾" />
+          <StatCard label="Total Collected" value={formatMoneyCompact(summary.totalCollected)} title={formatMoney(summary.totalCollected)} color="var(--success)" icon="✅" />
+          <StatCard label="Total Due" value={formatMoneyCompact(summary.totalDue)} title={formatMoney(summary.totalDue)} color="var(--warning)" icon="⏳" />
+          <StatCard label="Overdue Invoices" value={formatCompactNumber(summary.overdueCount)} color="var(--danger)" icon="⚠️" />
         </div>
       )}
 
