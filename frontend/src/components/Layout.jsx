@@ -25,6 +25,10 @@ const NAV_GROUPS = {
       ],
     },
     {
+      label: 'Finance',
+      items: [{ to: '/admin/fees', label: 'Fee Management', icon: 'fees' }],
+    },
+    {
       label: 'Communication',
       items: [
         { to: '/admin/notes', label: 'Notes', icon: 'notes' },
@@ -61,6 +65,10 @@ const NAV_GROUPS = {
       ],
     },
     {
+      label: 'Finance',
+      items: [{ to: '/student/fees', label: 'My Fees', icon: 'fees' }],
+    },
+    {
       label: 'Communication',
       items: [
         { to: '/student/notes', label: 'Notes', icon: 'notes' },
@@ -77,6 +85,10 @@ const NAV_GROUPS = {
         { to: '/parent/exams', label: 'Exam schedule', icon: 'exams' },
         { to: '/parent/routine', label: 'Class routine', icon: 'routine' },
       ],
+    },
+    {
+      label: 'Finance',
+      items: [{ to: '/parent/fees', label: 'Fee Status', icon: 'fees' }],
     },
     {
       label: 'Communication',

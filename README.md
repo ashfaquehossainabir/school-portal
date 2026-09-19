@@ -10,23 +10,25 @@ Full-stack school portal for admins, teachers, students, and parents. Built with
 - **Student:** view attendance report (with monthly % and daily log), exam schedule, class routine, notes, notices
 - **Parent:** same views as student, with a child-selector if they have multiple children linked
 - **Admin account management:** edit any user's info, reset their password directly, activate/deactivate accounts, assign teachers to specific subjects per class/section, and link/unlink parents with their children — all from the Users page
+- **Fee management:** admin raises invoices (tuition, admission, exam, transport, library fines, or any custom item) for one student or a whole class/section, applies discounts/scholarships, and records full or partial payments. Due tracking, payment history, and live status (unpaid/partial/paid/overdue) are computed automatically. Parents see a fee-status summary right on their dashboard plus a full per-child invoice/payment history page; students see the same for themselves. Every invoice and every individual payment can be downloaded as a PDF (invoice or receipt) from the browser, no server round-trip needed.
 - **Attendance sync:** teachers mark attendance once — it's the same database record students/parents read, so it appears on their dashboard immediately, no separate sync step needed
 - **Dark/light mode:** toggle in the top bar, saved to the browser and defaults to system preference
-- **Fully responsive:** collapsible sidebar on mobile, responsive grids and tables
+- **Fully responsive:** collapsible sidebar on mobile, responsive grids and tables, with dedicated breakpoints (desktop/laptop/tablet/mobile) tuned per view
 
 ## Project Structure
 
 ```
 school-portal/
 ├── backend/          Express + MongoDB API
-│   ├── models/        User, ClassRoom, ExamSchedule, Routine, Note, Notice, Attendance
-│   ├── routes/         auth, users, classes, exams, routines, notes, notices, attendance
+│   ├── models/        User, ClassRoom, ExamSchedule, Routine, Note, Notice, Attendance, FeeInvoice
+│   ├── routes/         auth, users, classes, exams, routines, notes, notices, attendance, fees
 │   ├── middleware/    JWT auth + role-based access control
 │   ├── server.js
 │   └── seed.js         creates the first admin account
 └── frontend/          React (Vite)
     ├── src/pages/admin | teacher | student | parent
-    ├── src/components  shared views (Attendance, Exams, Routine, Notes, Notices) + managers
+    ├── src/components  shared views (Attendance, Exams, Routine, Notes, Notices, Fees) + managers
+    ├── src/utils/generateFeePdf.js   client-side invoice/receipt PDF generation (jsPDF)
     └── src/context      Auth + Theme (dark/light)
 ```
 

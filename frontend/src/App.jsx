@@ -14,6 +14,7 @@ import AdminExams from './pages/admin/Exams';
 import AdminRoutine from './pages/admin/Routine';
 import AdminNotes from './pages/admin/Notes';
 import AdminNotices from './pages/admin/Notices';
+import AdminFees from './pages/admin/Fees';
 
 import TeacherDashboard from './pages/teacher/Dashboard';
 import TeacherAttendance from './pages/teacher/TakeAttendancePage';
@@ -28,6 +29,7 @@ import StudentExams from './pages/student/Exams';
 import StudentRoutine from './pages/student/Routine';
 import StudentNotes from './pages/student/Notes';
 import StudentNotices from './pages/student/Notices';
+import StudentFees from './pages/student/Fees';
 
 import ParentDashboard from './pages/parent/Dashboard';
 import ParentAttendance from './pages/parent/Attendance';
@@ -35,6 +37,7 @@ import ParentExams from './pages/parent/Exams';
 import ParentRoutine from './pages/parent/Routine';
 import ParentNotes from './pages/parent/Notes';
 import ParentNotices from './pages/parent/Notices';
+import ParentFees from './pages/parent/Fees';
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -67,6 +70,7 @@ export default function App() {
               <Route path="attendance" element={<AdminAttendance />} />
               <Route path="exams" element={<AdminExams />} />
               <Route path="routine" element={<AdminRoutine />} />
+              <Route path="fees" element={<AdminFees />} />
               <Route path="notes" element={<AdminNotes />} />
               <Route path="notices" element={<AdminNotices />} />
             </Route>
@@ -99,6 +103,7 @@ export default function App() {
               <Route path="attendance" element={<StudentAttendance />} />
               <Route path="exams" element={<StudentExams />} />
               <Route path="routine" element={<StudentRoutine />} />
+              <Route path="fees" element={<StudentFees />} />
               <Route path="notes" element={<StudentNotes />} />
               <Route path="notices" element={<StudentNotices />} />
             </Route>
@@ -115,6 +120,7 @@ export default function App() {
               <Route path="attendance" element={<ParentAttendance />} />
               <Route path="exams" element={<ParentExams />} />
               <Route path="routine" element={<ParentRoutine />} />
+              <Route path="fees" element={<ParentFees />} />
               <Route path="notes" element={<ParentNotes />} />
               <Route path="notices" element={<ParentNotices />} />
             </Route>
