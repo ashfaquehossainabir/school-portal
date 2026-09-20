@@ -58,7 +58,7 @@ export default function AdminUsers() {
     <div>
       <h2 style={{ marginTop: 0 }}>Users</h2>
 
-      <div className="modal-wrapper" style={{ marginBottom: 20 }}>
+      <div className="modal-wrapper au-create-card" style={{ marginBottom: 20 }}>
         <h3 style={{ marginTop: 0 }}>Create Account</h3>
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-3" style={{ marginBottom: 12 }}>
@@ -95,7 +95,7 @@ export default function AdminUsers() {
             )}
             <input placeholder="Phone (optional)" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
           </div>
-          <button className="btn btn-primary" type="submit" disabled={saving}>
+          <button className="btn btn-primary au-submit-btn" type="submit" disabled={saving}>
             {saving ? 'Creating...' : 'Create Account'}
           </button>
           {msg && <p style={{ fontSize: 13, color: 'var(--success)', marginTop: 8 }}>{msg}</p>}
@@ -110,17 +110,17 @@ export default function AdminUsers() {
       <ParentLinkManager />
 
       <div className="modal-wrapper">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
+        <div className="au-list-head">
           <h3 style={{ margin: 0 }}>All Users</h3>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <div className="au-list-controls">
             <input
               type="text"
               placeholder="Search by name, email, or Student ID"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ width: 260 }}
+              className="au-search"
             />
-            <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)} style={{ width: 160 }}>
+            <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)} className="au-role-filter">
               <option value="">All Roles</option>
               <option value="student">Students</option>
               <option value="teacher">Teachers</option>
@@ -143,7 +143,12 @@ export default function AdminUsers() {
               {filteredUsers.map((u) => (
                 <tr key={u._id}>
                   <td>{u.name}</td>
-                  <td><span className="badge" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{u.role}</span></td>
+                  <td>
+                    <span className="badge" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{u.role}</span>
+                    {u.isMainAdmin && (
+                      <span className="badge" style={{ marginLeft: 6, background: 'var(--accent)', color: '#fff', fontSize: 11 }}>👑 Main</span>
+                    )}
+                  </td>
                   <td>{u.email}</td>
                   <td>
                     {u.role === 'student' && `${u.studentId || '—'} · ${u.className || '—'} ${u.section || ''}`}
@@ -171,6 +176,57 @@ export default function AdminUsers() {
           onSaved={loadUsers}
         />
       )}
+
+      <style>{`
+        .au-list-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        .au-list-controls {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .au-search {
+          width: 260px;
+        }
+        .au-role-filter {
+          width: 160px;
+        }
+
+        /* ===== Tablet ===== */
+        @media (max-width: 900px) {
+          .au-list-controls {
+            width: 100%;
+          }
+          .au-search {
+            flex: 1;
+            min-width: 180px;
+          }
+        }
+
+        /* ===== Mobile ===== */
+        @media (max-width: 640px) {
+          .au-submit-btn {
+            width: 100%;
+          }
+          .au-list-head {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .au-list-controls {
+            flex-direction: column;
+          }
+          .au-search,
+          .au-role-filter {
+            width: 100%;
+          }
+        }
+      `}</style>
     </div>
   );
 }

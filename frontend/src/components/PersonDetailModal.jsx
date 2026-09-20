@@ -42,28 +42,33 @@ export default function PersonDetailModal({ userId, onClose }) {
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-card modal-wrapper" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-card modal-wrapper pdm-card" onClick={(e) => e.stopPropagation()}>
         {loading && <p style={{ color: 'var(--text-secondary)' }}>Loading details...</p>}
         {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
 
         {person && (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-              <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+            <div className="pdm-header">
+              <div className="pdm-header-main">
                 <div
                   className="avatar"
-                  style={{ background: person.avatarColor, width: 52, height: 52, fontSize: 20 }}
+                  style={{ background: person.avatarColor, width: 52, height: 52, fontSize: 20, flexShrink: 0 }}
                 >
                   {person.name?.[0]?.toUpperCase()}
                 </div>
-                <div>
-                  <h3 style={{ margin: 0 }}>{person.name}</h3>
-                  <span className={`role-badge role-${person.role}`} style={{ marginTop: 4, display: 'inline-block' }}>
-                    {ROLE_ICON[person.role]} {person.role}
-                  </span>
+                <div style={{ minWidth: 0 }}>
+                  <h3 style={{ margin: 0, overflowWrap: 'anywhere' }}>{person.name}</h3>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                    <span className={`role-badge role-${person.role}`} style={{ display: 'inline-block' }}>
+                      {ROLE_ICON[person.role]} {person.role}
+                    </span>
+                    {person.isMainAdmin && (
+                      <span className="badge" style={{ background: 'var(--accent)', color: '#fff' }}>👑 Main Admin</span>
+                    )}
+                  </div>
                 </div>
               </div>
-              <button className="btn btn-outline icon-btn" style={{ padding: '4px 10px' }} onClick={onClose}>✕</button>
+              <button className="btn btn-outline icon-btn pdm-close-btn" onClick={onClose}>✕</button>
             </div>
 
             <div style={{ marginBottom: 6 }}>
@@ -135,11 +140,55 @@ export default function PersonDetailModal({ userId, onClose }) {
               </>
             )}
 
+            {person.role === 'admin' && (
+              <>
+                <h4 style={{ margin: '16px 0 4px' }}>Access Level</h4>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
+                  Full system administrator — can manage all users, classes, fees, results, and school-wide settings.
+                  {person.isMainAdmin && ' This is the main admin account and cannot be deleted or deactivated by other admins.'}
+                </p>
+              </>
+            )}
+
             <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 18 }}>
               Joined on {new Date(person.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </>
         )}
+
+        <style>{`
+          .pdm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+          }
+          .pdm-header-main {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            min-width: 0;
+          }
+          .pdm-close-btn {
+            padding: 4px 10px;
+            flex-shrink: 0;
+          }
+
+          @media (max-width: 480px) {
+            .pdm-header-main {
+              gap: 10px;
+            }
+            .pdm-header-main .avatar {
+              width: 42px !important;
+              height: 42px !important;
+              font-size: 16px !important;
+            }
+            .pdm-card h3 {
+              font-size: 17px;
+            }
+          }
+        `}</style>
       </div>
     </div>
   );

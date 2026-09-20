@@ -39,6 +39,10 @@ const userSchema = new mongoose.Schema(
     phone: { type: String },
     avatarColor: { type: String, default: '#4f46e5' },
     isActive: { type: Boolean, default: true },
+    // Exactly one admin should carry this — see backend/routes/userRoutes.js
+    // for how it's assigned/enforced. Never settable through the general
+    // update endpoint, only internally.
+    isMainAdmin: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

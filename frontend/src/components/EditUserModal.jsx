@@ -84,18 +84,29 @@ export default function EditUserModal({ user, onClose, onSaved }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-card modal-wrapper" onClick={(e) => e.stopPropagation()}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <h3 style={{ margin: 0 }}>Edit {user.role}: {user.name}</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+          <h3 style={{ margin: 0 }}>
+            Edit {user.role}: {user.name}
+            {user.isMainAdmin && (
+              <span className="badge" style={{ marginLeft: 10, background: 'var(--accent)', color: '#fff', fontSize: 11, verticalAlign: 'middle' }}>
+                👑 Main Admin
+              </span>
+            )}
+          </h3>
           <button className="btn btn-outline" style={{ padding: '4px 10px' }} onClick={onClose}>✕</button>
         </div>
 
-        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <span className={`badge ${isActive ? 'badge-present' : 'badge-absent'}`}>
             {isActive ? 'active' : 'inactive'}
           </span>
-          <button className="btn btn-outline" onClick={handleToggleStatus} disabled={togglingStatus}>
-            {togglingStatus ? 'Updating...' : isActive ? 'Deactivate account' : 'Activate account'}
-          </button>
+          {user.isMainAdmin ? (
+            <span style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>The main admin account cannot be deactivated.</span>
+          ) : (
+            <button className="btn btn-outline" onClick={handleToggleStatus} disabled={togglingStatus}>
+              {togglingStatus ? 'Updating...' : isActive ? 'Deactivate account' : 'Activate account'}
+            </button>
+          )}
         </div>
 
         <form onSubmit={handleSaveInfo} style={{ marginBottom: 20 }}>
@@ -143,7 +154,11 @@ export default function EditUserModal({ user, onClose, onSaved }) {
 
         <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border-color)' }}>
           <h4 style={{ margin: '0 0 8px', color: 'var(--danger)' }}>Danger Zone</h4>
-          {!confirmingDelete ? (
+          {user.isMainAdmin ? (
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
+              This is the main admin account — it cannot be deleted by other admins.
+            </p>
+          ) : !confirmingDelete ? (
             <button className="btn btn-danger" onClick={() => setConfirmingDelete(true)}>
               Delete this account
             </button>

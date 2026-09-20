@@ -8,12 +8,14 @@ const TABS = [
   { key: 'teacher', label: 'Teachers', icon: '🧑‍🏫' },
   { key: 'student', label: 'Students', icon: '🎓' },
   { key: 'parent', label: 'Parents', icon: '👪' },
+  { key: 'admin', label: 'Admins', icon: '🛡️' },
 ];
 
 function subtitleFor(u) {
   if (u.role === 'student') return `${u.studentId || '—'} · ${u.className || '—'} ${u.section || ''}`.trim();
   if (u.role === 'teacher') return u.subject || 'No subject assigned';
   if (u.role === 'parent') return `${u.children?.length || 0} child(ren) linked`;
+  if (u.role === 'admin') return 'System Administrator';
   return u.email;
 }
 
@@ -31,9 +33,10 @@ export default function Directory() {
       api.get('/users', { params: { role: 'teacher' } }),
       api.get('/users', { params: { role: 'student' } }),
       api.get('/users', { params: { role: 'parent' } }),
+      api.get('/users', { params: { role: 'admin' } }),
     ])
-      .then(([teachers, students, parents]) => {
-        setPeople([...teachers.data, ...students.data, ...parents.data]);
+      .then(([teachers, students, parents, admins]) => {
+        setPeople([...teachers.data, ...students.data, ...parents.data, ...admins.data]);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -61,19 +64,21 @@ export default function Directory() {
       teacher: people.filter((p) => p.role === 'teacher').length,
       student: people.filter((p) => p.role === 'student').length,
       parent: people.filter((p) => p.role === 'parent').length,
+      admin: people.filter((p) => p.role === 'admin').length,
     }),
     [people]
   );
 
   return (
-    <div>
+    <div className="dir-root">
       <h2 style={{ marginTop: 0 }}>Directory</h2>
       <p style={{ color: 'var(--text-secondary)', marginTop: -8, marginBottom: 20, fontSize: 14 }}>
-        Browse every teacher, student, and parent in the school. Click a card to view full details.
+        Browse every teacher, student, parent, and admin in the school. Click a card to view full details.
+        Only admins can add or edit this information, from the Users page.
       </p>
 
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 20 }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <div className="dir-controls">
+        <div className="dir-tabs">
           {TABS.map((tab) => (
             <button
               key={tab.key}
@@ -90,7 +95,7 @@ export default function Directory() {
           placeholder="Search by name, email, ID, class, or subject..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ maxWidth: 320, marginLeft: 'auto' }}
+          className="dir-search"
         />
       </div>
 
@@ -124,10 +129,13 @@ export default function Directory() {
                 <div style={{ fontSize: 12, color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {subtitleFor(p)}
                 </div>
-                <div style={{ marginTop: 6 }}>
+                <div style={{ marginTop: 6, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   <span className={`badge ${p.isActive ? 'badge-present' : 'badge-absent'}`} style={{ fontSize: 11 }}>
                     {p.isActive ? 'active' : 'inactive'}
                   </span>
+                  {p.isMainAdmin && (
+                    <span className="badge" style={{ fontSize: 11, background: 'var(--accent)', color: '#fff' }}>👑 Main Admin</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -138,6 +146,54 @@ export default function Directory() {
       {selectedId && (
         <PersonDetailModal userId={selectedId} onClose={() => setSelectedId(null)} />
       )}
+
+      <style>{`
+        .dir-controls {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+        .dir-tabs {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+        .dir-search {
+          max-width: 320px;
+          margin-left: auto;
+        }
+
+        /* ===== Laptop ===== */
+        @media (max-width: 1024px) {
+          .dir-search {
+            max-width: 280px;
+          }
+        }
+
+        /* ===== Tablet ===== */
+        @media (max-width: 900px) {
+          .dir-search {
+            max-width: 100%;
+            margin-left: 0;
+          }
+        }
+
+        /* ===== Mobile ===== */
+        @media (max-width: 640px) {
+          .dir-tabs {
+            width: 100%;
+          }
+          .dir-tabs .btn {
+            flex: 1 1 calc(50% - 4px);
+            text-align: center;
+          }
+          .dir-search {
+            width: 100%;
+          }
+        }
+      `}</style>
     </div>
   );
 }
