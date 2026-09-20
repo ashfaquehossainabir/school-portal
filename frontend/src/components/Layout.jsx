@@ -21,6 +21,7 @@ const NAV_GROUPS = {
         { to: '/admin/classes', label: 'Classes', icon: 'classes' },
         { to: '/admin/attendance', label: 'Attendance', icon: 'attendance' },
         { to: '/admin/exams', label: 'Exam schedule', icon: 'exams' },
+        { to: '/admin/results', label: 'Results', icon: 'results' },
         { to: '/admin/routine', label: 'Class routine', icon: 'routine' },
       ],
     },
@@ -43,6 +44,7 @@ const NAV_GROUPS = {
       items: [
         { to: '/teacher/attendance', label: 'Take attendance', icon: 'attendance' },
         { to: '/teacher/exams', label: 'Exam schedule', icon: 'exams' },
+        { to: '/teacher/results', label: 'Results', icon: 'results' },
         { to: '/teacher/routine', label: 'Class routine', icon: 'routine' },
       ],
     },
@@ -61,6 +63,7 @@ const NAV_GROUPS = {
       items: [
         { to: '/student/attendance', label: 'Attendance', icon: 'attendance' },
         { to: '/student/exams', label: 'Exam schedule', icon: 'exams' },
+        { to: '/student/results', label: 'Results', icon: 'results' },
         { to: '/student/routine', label: 'Class routine', icon: 'routine' },
       ],
     },
@@ -83,6 +86,7 @@ const NAV_GROUPS = {
       items: [
         { to: '/parent/attendance', label: 'Attendance', icon: 'attendance' },
         { to: '/parent/exams', label: 'Exam schedule', icon: 'exams' },
+        { to: '/parent/results', label: "Child's Results", icon: 'results' },
         { to: '/parent/routine', label: 'Class routine', icon: 'routine' },
       ],
     },

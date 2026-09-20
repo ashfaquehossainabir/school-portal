@@ -12,6 +12,7 @@ const noteRoutes = require('./routes/noteRoutes');
 const noticeRoutes = require('./routes/noticeRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 const feeRoutes = require('./routes/feeRoutes');
+const resultRoutes = require('./routes/resultRoutes');
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/notes', noteRoutes);
 app.use('/api/notices', noticeRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/fees', feeRoutes);
+app.use('/api/results', resultRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {

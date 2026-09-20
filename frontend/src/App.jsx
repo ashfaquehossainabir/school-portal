@@ -11,6 +11,7 @@ import AdminUsers from './pages/admin/Users';
 import AdminClasses from './pages/admin/Classes';
 import AdminAttendance from './pages/admin/Attendance';
 import AdminExams from './pages/admin/Exams';
+import AdminResults from './pages/admin/Results';
 import AdminRoutine from './pages/admin/Routine';
 import AdminNotes from './pages/admin/Notes';
 import AdminNotices from './pages/admin/Notices';
@@ -19,6 +20,7 @@ import AdminFees from './pages/admin/Fees';
 import TeacherDashboard from './pages/teacher/Dashboard';
 import TeacherAttendance from './pages/teacher/TakeAttendancePage';
 import TeacherExams from './pages/teacher/Exams';
+import TeacherResults from './pages/teacher/Results';
 import TeacherRoutine from './pages/teacher/Routine';
 import TeacherNotes from './pages/teacher/Notes';
 import TeacherNotices from './pages/teacher/Notices';
@@ -26,6 +28,7 @@ import TeacherNotices from './pages/teacher/Notices';
 import StudentDashboard from './pages/student/Dashboard';
 import StudentAttendance from './pages/student/Attendance';
 import StudentExams from './pages/student/Exams';
+import StudentResults from './pages/student/Results';
 import StudentRoutine from './pages/student/Routine';
 import StudentNotes from './pages/student/Notes';
 import StudentNotices from './pages/student/Notices';
@@ -34,6 +37,7 @@ import StudentFees from './pages/student/Fees';
 import ParentDashboard from './pages/parent/Dashboard';
 import ParentAttendance from './pages/parent/Attendance';
 import ParentExams from './pages/parent/Exams';
+import ParentResults from './pages/parent/Results';
 import ParentRoutine from './pages/parent/Routine';
 import ParentNotes from './pages/parent/Notes';
 import ParentNotices from './pages/parent/Notices';
@@ -69,6 +73,7 @@ export default function App() {
               <Route path="classes" element={<AdminClasses />} />
               <Route path="attendance" element={<AdminAttendance />} />
               <Route path="exams" element={<AdminExams />} />
+              <Route path="results" element={<AdminResults />} />
               <Route path="routine" element={<AdminRoutine />} />
               <Route path="fees" element={<AdminFees />} />
               <Route path="notes" element={<AdminNotes />} />
@@ -86,6 +91,7 @@ export default function App() {
               <Route index element={<TeacherDashboard />} />
               <Route path="attendance" element={<TeacherAttendance />} />
               <Route path="exams" element={<TeacherExams />} />
+              <Route path="results" element={<TeacherResults />} />
               <Route path="routine" element={<TeacherRoutine />} />
               <Route path="notes" element={<TeacherNotes />} />
               <Route path="notices" element={<TeacherNotices />} />
@@ -102,6 +108,7 @@ export default function App() {
               <Route index element={<StudentDashboard />} />
               <Route path="attendance" element={<StudentAttendance />} />
               <Route path="exams" element={<StudentExams />} />
+              <Route path="results" element={<StudentResults />} />
               <Route path="routine" element={<StudentRoutine />} />
               <Route path="fees" element={<StudentFees />} />
               <Route path="notes" element={<StudentNotes />} />
@@ -119,6 +126,7 @@ export default function App() {
               <Route index element={<ParentDashboard />} />
               <Route path="attendance" element={<ParentAttendance />} />
               <Route path="exams" element={<ParentExams />} />
+              <Route path="results" element={<ParentResults />} />
               <Route path="routine" element={<ParentRoutine />} />
               <Route path="fees" element={<ParentFees />} />
               <Route path="notes" element={<ParentNotes />} />

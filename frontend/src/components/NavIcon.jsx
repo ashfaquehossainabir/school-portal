@@ -68,6 +68,14 @@ const PATHS = {
       <path d="M9.5 16.4l1 3.6" />
     </>
   ),
+  results: (
+    <>
+      <path d="M8 3.5h6.5L18 7v13.5a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z" />
+      <path d="M14 3.5V7h4" />
+      <path d="M9.5 12.5l1.8 1.8L14.5 11" />
+      <path d="M9 16.5h6" />
+    </>
+  ),
   fees: (
     <>
       <rect x="3.5" y="6" width="17" height="13" rx="2" />
