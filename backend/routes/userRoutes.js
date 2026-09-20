@@ -156,6 +156,34 @@ router.put('/:id/reset-password', protect, authorize('admin'), async (req, res) 
   }
 });
 
+// PUT transfer the Main Admin title to another admin account. Restricted to
+// the current main admin only — otherwise any admin could just crown
+// themselves and the whole protection would mean nothing.
+router.put('/:id/make-main-admin', protect, authorize('admin'), async (req, res) => {
+  try {
+    if (!req.user.isMainAdmin) {
+      return res.status(403).json({ message: 'Only the current main admin can transfer this role' });
+    }
+
+    const target = await User.findById(req.params.id);
+    if (!target || target.role !== 'admin') {
+      return res.status(400).json({ message: 'Target must be an existing admin account' });
+    }
+    if (target._id.toString() === req.user._id.toString()) {
+      return res.status(400).json({ message: 'This account is already the main admin' });
+    }
+
+    await User.updateOne({ _id: req.user._id }, { isMainAdmin: false });
+    target.isMainAdmin = true;
+    await target.save();
+
+    const { password: _pw, ...safe } = target.toObject();
+    res.json({ message: `${target.name} is now the main admin`, user: safe });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // PATCH activate or deactivate a user account (admin only)
 router.patch('/:id/status', protect, authorize('admin'), async (req, res) => {
   try {

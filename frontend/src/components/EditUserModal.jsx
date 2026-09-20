@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 
 export default function EditUserModal({ user, onClose, onSaved }) {
+  const { user: currentUser, setUser: setCurrentUser } = useAuth();
   const [form, setForm] = useState({
     name: user.name || '',
     email: user.email || '',
@@ -18,10 +20,17 @@ export default function EditUserModal({ user, onClose, onSaved }) {
   const [togglingStatus, setTogglingStatus] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [confirmingTransfer, setConfirmingTransfer] = useState(false);
+  const [transferring, setTransferring] = useState(false);
+  const [transferMsg, setTransferMsg] = useState('');
   const [msg, setMsg] = useState('');
   const [pwMsg, setPwMsg] = useState('');
   const [deleteMsg, setDeleteMsg] = useState('');
   const [isActive, setIsActive] = useState(user.isActive);
+
+  // Only the current main admin can hand off the title — otherwise any
+  // admin could just crown themselves.
+  const canTransferMainAdmin = currentUser?.isMainAdmin && user.role === 'admin' && !user.isMainAdmin;
 
   const handleSaveInfo = async (e) => {
     e.preventDefault();
@@ -78,6 +87,24 @@ export default function EditUserModal({ user, onClose, onSaved }) {
     } catch (err) {
       setDeleteMsg(err.response?.data?.message || 'Failed to delete user');
       setDeleting(false);
+    }
+  };
+
+  const handleTransferMainAdmin = async () => {
+    setTransferring(true);
+    setTransferMsg('');
+    try {
+      await api.put(`/users/${user._id}/make-main-admin`);
+      // The current admin (viewing this modal) just gave up the title —
+      // reflect that in their own session immediately, no re-login needed.
+      const updatedSelf = { ...currentUser, isMainAdmin: false };
+      setCurrentUser(updatedSelf);
+      localStorage.setItem('user', JSON.stringify(updatedSelf));
+      onSaved?.();
+      onClose();
+    } catch (err) {
+      setTransferMsg(err.response?.data?.message || 'Failed to transfer main admin');
+      setTransferring(false);
     }
   };
 
@@ -151,6 +178,34 @@ export default function EditUserModal({ user, onClose, onSaved }) {
           </div>
           {pwMsg && <p style={{ fontSize: 13, color: 'var(--success)', marginTop: 8 }}>{pwMsg}</p>}
         </form>
+
+        {canTransferMainAdmin && (
+          <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border-color)' }}>
+            <h4 style={{ margin: '0 0 8px' }}>👑 Main Admin</h4>
+            {!confirmingTransfer ? (
+              <button className="btn btn-outline" onClick={() => setConfirmingTransfer(true)}>
+                Make this the main admin
+              </button>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
+                  This hands the main admin title to <strong>{user.name}</strong> and removes it from your own account —
+                  after this, other admins (including you) won't be able to delete or deactivate {user.name}'s account, and
+                  you'll lose that protection yourself. Are you sure?
+                </p>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <button className="btn btn-primary" onClick={handleTransferMainAdmin} disabled={transferring}>
+                    {transferring ? 'Transferring...' : 'Yes, transfer main admin'}
+                  </button>
+                  <button className="btn btn-outline" onClick={() => setConfirmingTransfer(false)} disabled={transferring}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+            {transferMsg && <p style={{ fontSize: 13, color: 'var(--danger)', marginTop: 8 }}>{transferMsg}</p>}
+          </div>
+        )}
 
         <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border-color)' }}>
           <h4 style={{ margin: '0 0 8px', color: 'var(--danger)' }}>Danger Zone</h4>
