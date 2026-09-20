@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import api from '../api/axios';
-import ClassSectionSelect from './ClassSectionSelect';
+import ClassSearchSelect from './ClassSearchSelect';
+import UserSearchSelect from './UserSearchSelect';
+import { generateResultPdf } from '../utils/generateResultPdf';
 import { GRADE_OPTIONS, GRADE_COLORS, gradeFromPercentage, percentageOf } from '../utils/resultTypes';
 
 const emptySubject = () => ({ subject: '', marks: '', maxMarks: 100, grade: '' });
@@ -12,12 +14,14 @@ export default function ResultManager() {
   // ----- create/edit form -----
   const [editingId, setEditingId] = useState(null);
   const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [editingStudent, setEditingStudent] = useState(null); // student being edited, fixed for the edit
   const [examTitle, setExamTitle] = useState('');
   const [term, setTerm] = useState('');
   const [subjects, setSubjects] = useState([emptySubject()]);
   const [remarks, setRemarks] = useState('');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+  const [studentResetSignal, setStudentResetSignal] = useState(0);
 
   // ----- results list -----
   const [filterStudentId, setFilterStudentId] = useState('');
@@ -25,8 +29,8 @@ export default function ResultManager() {
   const [loadingList, setLoadingList] = useState(false);
   const [openId, setOpenId] = useState(null);
 
-  // Students in the selected class/section, for both the create-form picker
-  // and the "filter by student" dropdown on the list below.
+  // Students in the selected class/section, used to scope the student
+  // search box and the "filter by student" dropdown on the list below.
   useEffect(() => {
     if (!classSection.className) {
       setStudents([]);
@@ -36,6 +40,11 @@ export default function ResultManager() {
       .get('/users', { params: { role: 'student', className: classSection.className, section: classSection.section } })
       .then((res) => setStudents(res.data.sort((a, b) => (a.roll || '').localeCompare(b.roll || '', undefined, { numeric: true }))));
     setFilterStudentId('');
+    if (!editingId) {
+      setSelectedStudentId('');
+      setStudentResetSignal((n) => n + 1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classSection]);
 
   const loadResults = () => {
@@ -73,15 +82,18 @@ export default function ResultManager() {
 
   const resetForm = () => {
     setEditingId(null);
+    setEditingStudent(null);
     setSelectedStudentId('');
     setExamTitle('');
     setTerm('');
     setSubjects([emptySubject()]);
     setRemarks('');
+    setStudentResetSignal((n) => n + 1);
   };
 
   const startEdit = (result) => {
     setEditingId(result._id);
+    setEditingStudent(result.student);
     setSelectedStudentId(result.student._id);
     setExamTitle(result.examTitle);
     setTerm(result.term || '');
@@ -116,26 +128,34 @@ export default function ResultManager() {
       return;
     }
 
+    // Grabbed before resetForm() clears state — used to fill in the PDF
+    // right after saving, without another round trip to the server.
+    const studentForPdf = editingId ? editingStudent : students.find((s) => s._id === selectedStudentId);
+
     setSaving(true);
     try {
+      let saved;
       if (editingId) {
-        await api.put(`/results/${editingId}`, {
+        const res = await api.put(`/results/${editingId}`, {
           examTitle: examTitle.trim(),
           term: term.trim(),
           subjects: cleanSubjects,
           remarks: remarks.trim(),
         });
-        setMsg('Result updated.');
+        saved = res.data;
+        setMsg('Result updated — PDF downloaded.');
       } else {
-        await api.post('/results', {
+        const res = await api.post('/results', {
           studentId: selectedStudentId,
           examTitle: examTitle.trim(),
           term: term.trim(),
           subjects: cleanSubjects,
           remarks: remarks.trim(),
         });
-        setMsg('Result saved.');
+        saved = res.data;
+        setMsg('Result saved — PDF downloaded.');
       }
+      if (saved && studentForPdf) generateResultPdf(saved, studentForPdf);
       resetForm();
       loadResults();
     } catch (err) {
@@ -156,22 +176,26 @@ export default function ResultManager() {
       <div className="modal-wrapper" style={{ marginBottom: 20 }}>
         <h3 style={{ marginTop: 0 }}>{editingId ? 'Edit Result' : 'Add Exam Result'}</h3>
         <form onSubmit={handleSubmit}>
+          {editingId ? (
+            <div className="rm-editing-banner">
+              Editing result for <strong>{editingStudent?.name}</strong>
+              {editingStudent?.className ? ` — ${editingStudent.className} ${editingStudent.section || ''}` : ''}
+            </div>
+          ) : (
+            <div className="rm-target-row">
+              <ClassSearchSelect value={classSection} onChange={setClassSection} placeholder="Search class or section" width={220} />
+              <UserSearchSelect
+                role="student"
+                placeholder={classSection.className ? 'Search & select student' : 'Select a class first'}
+                onSelect={(u) => setSelectedStudentId(u?._id || '')}
+                filterFn={(u) => !!classSection.className && u.className === classSection.className && u.section === classSection.section}
+                resetSignal={studentResetSignal}
+                width={260}
+              />
+            </div>
+          )}
+
           <div className="rm-target-row">
-            <ClassSectionSelect value={classSection} onChange={setClassSection} />
-            <select
-              value={selectedStudentId}
-              onChange={(e) => setSelectedStudentId(e.target.value)}
-              disabled={!!editingId}
-              style={{ width: 240 }}
-              required
-            >
-              <option value="">{students.length === 0 ? 'No students in this class' : 'Select student'}</option>
-              {students.map((s) => (
-                <option key={s._id} value={s._id}>
-                  {s.name} {s.roll ? `(Roll ${s.roll})` : `(${s.studentId || ''})`}
-                </option>
-              ))}
-            </select>
             <input
               placeholder="Exam title e.g. Half Yearly Examination 2026"
               value={examTitle}
@@ -235,7 +259,7 @@ export default function ResultManager() {
       <div className="modal-wrapper" style={{ marginBottom: 20 }}>
         <h3 style={{ marginTop: 0 }}>Filter Results</h3>
         <div className="rm-filter-row">
-          <ClassSectionSelect value={classSection} onChange={setClassSection} />
+          <ClassSearchSelect value={classSection} onChange={setClassSection} placeholder="Search class or section" width={220} />
           <select value={filterStudentId} onChange={(e) => setFilterStudentId(e.target.value)} style={{ width: 220 }}>
             <option value="">All students in this class</option>
             {students.map((s) => (
@@ -312,6 +336,7 @@ export default function ResultManager() {
                     </div>
                     {r.remarks && <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 10 }}>Remarks: {r.remarks}</p>}
                     <div className="rm-result-actions">
+                      <button type="button" className="btn btn-outline" onClick={() => generateResultPdf(r, r.student)}>Download PDF</button>
                       <button type="button" className="btn btn-outline" onClick={() => startEdit(r)}>Edit</button>
                       <button type="button" className="btn btn-danger" onClick={() => handleDelete(r._id)}>Delete</button>
                     </div>
@@ -328,6 +353,13 @@ export default function ResultManager() {
           display: flex;
           gap: 12px;
           flex-wrap: wrap;
+          margin-bottom: 16px;
+        }
+        .rm-editing-banner {
+          padding: 10px 14px;
+          border-radius: var(--radius-sm);
+          background: var(--bg-hover);
+          font-size: 13.5px;
           margin-bottom: 16px;
         }
         .rm-subjects {
@@ -428,6 +460,7 @@ export default function ResultManager() {
           gap: 10px;
           justify-content: flex-end;
           margin-top: 14px;
+          flex-wrap: wrap;
         }
 
         /* ===== Laptop ===== */

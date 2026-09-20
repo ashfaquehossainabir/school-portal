@@ -8,7 +8,7 @@ export default function ParentResults() {
     <div>
       <h2 style={{ marginTop: 0 }}>Child's Results</h2>
       <ChildSelector onChange={setChild} />
-      {child && <ResultView studentId={child._id} />}
+      {child && <ResultView studentId={child._id} student={child} />}
     </div>
   );
 }

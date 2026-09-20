@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
 import StatCard from './StatCard';
+import { generateResultPdf } from '../utils/generateResultPdf';
 import { GRADE_COLORS } from '../utils/resultTypes';
 
-export default function ResultView({ studentId }) {
+export default function ResultView({ studentId, student }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState(null);
@@ -96,6 +97,11 @@ export default function ResultView({ studentId }) {
                     </table>
                   </div>
                   {r.remarks && <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 10 }}>Remarks: {r.remarks}</p>}
+                  <div className="rv-result-actions">
+                    <button type="button" className="btn btn-primary" onClick={() => generateResultPdf(r, student)}>
+                      Download PDF
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -168,6 +174,11 @@ export default function ResultView({ studentId }) {
           padding-top: 16px;
           border-top: 1px solid var(--border-color);
         }
+        .rv-result-actions {
+          display: flex;
+          justify-content: flex-end;
+          margin-top: 14px;
+        }
 
         /* ===== Laptop ===== */
         @media (max-width: 1024px) {
@@ -196,6 +207,9 @@ export default function ResultView({ studentId }) {
           .rv-result-head-amounts {
             width: 100%;
             justify-content: space-between;
+          }
+          .rv-result-actions .btn {
+            width: 100%;
           }
         }
 

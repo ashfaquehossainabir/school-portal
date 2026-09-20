@@ -7,7 +7,7 @@ import useDebounce from '../hooks/useDebounce';
 // Fetches the full list for the given role once, then filters client-side
 // as the person types. Clicking a suggestion fills the input and reports
 // the chosen user back via onSelect.
-export default function UserSearchSelect({ role, placeholder, onSelect, excludeIds = [], resetSignal, initialUser = null, width = 240, prioritizeIds = [] }) {
+export default function UserSearchSelect({ role, placeholder, onSelect, excludeIds = [], resetSignal, initialUser = null, width = 240, prioritizeIds = [], filterFn }) {
   const [allUsers, setAllUsers] = useState([]);
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 250);
@@ -54,10 +54,10 @@ export default function UserSearchSelect({ role, placeholder, onSelect, excludeI
 
   const matches =
     debouncedQuery.trim().length === 0
-      ? byPriority(allUsers.filter((u) => !excludeSet.has(u._id))).slice(0, 8)
+      ? byPriority(allUsers.filter((u) => !excludeSet.has(u._id) && (!filterFn || filterFn(u)))).slice(0, 8)
       : byPriority(
           allUsers
-            .filter((u) => !excludeSet.has(u._id))
+            .filter((u) => !excludeSet.has(u._id) && (!filterFn || filterFn(u)))
             .filter((u) => {
               const q = debouncedQuery.toLowerCase();
               return (

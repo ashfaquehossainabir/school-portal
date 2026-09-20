@@ -6,7 +6,7 @@ export default function StudentResults() {
   return (
     <div>
       <h2 style={{ marginTop: 0 }}>My Results</h2>
-      <ResultView studentId={user?._id} />
+      <ResultView studentId={user?._id} student={user} />
     </div>
   );
 }
